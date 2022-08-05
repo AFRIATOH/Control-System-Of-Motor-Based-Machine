@@ -4,10 +4,6 @@
 #include  <msp430g2553.h>          // MSP430x2xx
 //#include  <msp430xG46x.h>        // MSP430x4xx 
 
-
-#define   overflowvalue    65535
-#define   debounceVal      10000
-
 //  Timer abstraction
 #define TIMER_DIR          P2DIR
 #define TIMER_SEL          P2SEL

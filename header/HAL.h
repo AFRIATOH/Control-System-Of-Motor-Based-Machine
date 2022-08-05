@@ -34,6 +34,5 @@ extern void ResetTimer();
 extern void TIMERdelay(int);
 
 extern volatile char new_X[6];
-extern volatile char pot_val[5];
 
 #endif
