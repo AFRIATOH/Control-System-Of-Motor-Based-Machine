@@ -8,7 +8,6 @@ extern unsigned int X_delay = 500;
 extern int count_up_val = 0;
 extern int count_down_val = 65535;
 volatile char new_X[6];
-volatile char pot_val[5]={' ',' ',' ',' ',' '};
 
 void main(void){
   

@@ -12,5 +12,4 @@ extern void PC_painter(void);
 extern void calibration(void);
 extern void script_mode(void);
 
-
 #endif

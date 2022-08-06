@@ -2,8 +2,6 @@
 #include  "../header/Application.h"     // private library - APP layer
 #include  "../header/BSP.h"             // private library - BSP layer
 
-
-
 //------------------------------------------------------------------------------------- 
 //           UART configuration 
 //-------------------------------------------------------------------------------------

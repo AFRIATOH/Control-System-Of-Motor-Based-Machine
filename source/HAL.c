@@ -131,30 +131,8 @@ __interrupt void USCI0RX_ISR(void)
 //*********************************************************************
 
 #pragma vector=USCIAB0TX_VECTOR
-__interrupt void USCI0TX_ISR(void)
+__interrupt void USCI0TX_ISR(void){           		
 
-{           		
-	if(state == state5){
-		UCA0TXBUF = pot_val[i++];
-		if (i == sizeof pot_val -1){					     // TX over?
-			i = 0; 
-			IE2 &= ~UCA0TXIE;        					 // Disable USCI_A0 TX interrupt
-			IE2 |= UCA0RXIE;                 			 // Enable USCI_A0 RX interrupt
-			state = state7;
-			tx = 0;
-            }
-	}
-	else if(tx){
-        UCA0TXBUF = MENU[i++];
-        if (i == sizeof MENU - 1){						 // TX over?
-                i = 0; 
-                IE2 &= ~UCA0TXIE;                		 // Disable USCI_A0 TX interrupt
-                IE2 |= UCA0RXIE;                 		 // Enable USCI_A0 RX interrupt	
-        }			
-	}
-	else{
-	  IE2 &= ~UCA0TXIE;    
-	}
 }
 
 //------------------------------------------------------------------
@@ -237,7 +215,7 @@ void sample(void){
 }
 
 //******************************************************************
-// move joystick
+// move joystick - //dont use atan
 //******************************************************************
 void MoveJoyStick(void){
     if (Vx > 900){                          // first or fourth quarter of x-y
