@@ -4,6 +4,10 @@
 #include  <msp430g2553.h>          // MSP430x2xx
 //#include  <msp430xG46x.h>        // MSP430x4xx 
 
+//parameters
+#define Phi 3.1415926
+
+
 //  Timer abstraction
 #define TIMER_DIR          P2DIR
 #define TIMER_SEL          P2SEL

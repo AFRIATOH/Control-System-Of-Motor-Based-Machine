@@ -6,10 +6,9 @@ int tx = 1;
 volatile unsigned int Vx=460;
 volatile unsigned int Vy=460;
 unsigned int res[2] = {460, 460};
-volatile unsigned long destiny_angle;
 unsigned int a, b;
-double fraction_a_b;
-double alpha;
+double c, alpha;
+volatile unsigned long angle;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -25,7 +24,6 @@ void sysConfig(void)
 	JOYSTICKconfig();
 	LEDconfig();
 	TIMERconfig();
-
 	_BIS_SR(GIE);                     // enable interrupts globally
 }
 
@@ -222,13 +220,13 @@ void MoveJoyStick(void){
         if(Vy > 460){                             // first quarter
             a = Vx - 460;
             b = Vy - 460;
-            fraction_a_b = a/b;                          // Assign the value we will find the atan of
-            alpha = atan(fraction_a_b) * 180 / PI;       // Calculate the Arc Tangent of value
+            c = a/b;                          // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
         } else if (Vy < 459){                     // fourth quarter
-            a = Vx - origin;
-            b = origin - Vy;
-            fraction_a_b = a/b;                          // Assign the value we will find the atan of
-            alpha = atan(fraction_a_b) * 180 / PI;       // Calculate the Arc Tangent of value
+            a = Vx - 460;
+            b = 460 - Vy;
+            c = a/b;                          // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 180 - alpha;
         }
         else{            // Vy in [radius_min, radius_max] => direction is on x axis
@@ -237,16 +235,16 @@ void MoveJoyStick(void){
 
     } else if (Vx < 100){                   // second or third quarter of x-y
         if(Vy > 460){                             // second quarter
-            a = origin - Vx;
-            b = Vy - origin;
-            fraction_a_b = a/b;                          // Assign the value we will find the atan of
-            alpha = atan(fraction_a_b) * 180 / PI;       // Calculate the Arc Tangent of value
+            a = 460 - Vx;
+            b = Vy - 460;
+            c = a/b;                          // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
         } else if (Vy < 459){                     // third quarter
-            a = origin - Vx;
-            b = origin - Vy;
-            fraction_a_b = a/b;                          // Assign the value we will find the atan of
-            alpha = atan(fraction_a_b) * 180 / PI;       // Calculate the Arc Tangent of value
+            a = 460 - Vx;
+            b = 460 - Vy;
+            c = a/b;                          // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 180 + alpha;
         } else {        // Vy in [radius_min, radius_max] => direction is on x axis
             alpha = 270;
@@ -259,7 +257,7 @@ void MoveJoyStick(void){
             alpha = 180;
         }
     }
-    destiny_angle = (unsigned long)alpha;
+    angle = (unsigned long)alpha;
     stepper_deg(destiny_angle);
     Vx = 460;
     Vy = 460;
