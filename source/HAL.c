@@ -67,61 +67,7 @@ void enterLPM(unsigned char LPM_level){
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void)
 {
-  if (state != state4){
-	    if (UCA0RXBUF == '1')                          // '1' received?
-		{
-			state = state1;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '2')                     // '2' received?
-		{
-			state = state2;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '3')                     // '3' received?
-		{
-			state = state3;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '4')                     // '4' received?
-		{
-			state = state4;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '5')                     // '5' received?
-		{
-			state = state5;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '6')                     // '6' received?
-		{
-			state = state6;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '7')                     // '7' received?
-		{
-			state = state7;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '8')                     // '8' received?
-		{
-			state = state0;
-			//__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-		else if (UCA0RXBUF == '9')                     // '9' received?
-		{
-			state = state8;
-			__bic_SR_register_on_exit(LPM0_bits + GIE);
-		}
-  }
-  else {
-		new_X[j++] = UCA0RXBUF;
-	  	if (new_X[j-1] == '\0'){
-		  j = 0;
-		  X_delay = str_to_int(new_X);
-          state = state0;
-	  }
-  }
+    
 }
 
 //*********************************************************************
