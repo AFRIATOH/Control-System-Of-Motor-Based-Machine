@@ -27,8 +27,21 @@ extern void DelayUs(unsigned int);
 extern void delay(unsigned int);
 extern void delay_x(unsigned int);
 
-// Timers
-extern void ResetTimer();
-extern void TIMERdelay(int);
+//sample
+extern void sample(void);
+extern void MoveJoyStick(void);
+
+//move motor
+extern void angle_increase(void);
+extern void angle_decrease(void);
+extern void forward(volatile long);
+extern void backward(volatile long);
+extern void step_forward(void);
+extern void step_backward(void);
+extern void half_step_forward(void);
+extern void move_to_angle(unsigned long);
+
+// script funcs
+extern void scan_step(unsigned long, unsigned long);
 
 #endif

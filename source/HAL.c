@@ -1,6 +1,7 @@
 #include  "../header/HAL.h"     // private library - HAL layer
 #include  "../header/API.h"    		// private library - API layer
 
+int D = 50;
 unsigned int i,j;
 int tx = 1;
 volatile unsigned int Vx=460;
@@ -168,42 +169,98 @@ void sample(void){
 //******************************************************************
 // move stepper 
 //******************************************************************
-void forward(void){
-    SM_Step_Right >>= 1;
-        if (SM_Step_Right == 0x08){
-            SM_Step_Right = 0x80;
-        }
-        SMPortOUT = SM_Step_Right;
-        Timer0_A_delay_ms(StepperDelay);
+
+void angle_increase(void){
+    volatile unsigned long curr_angle_tmp = curr_angle;
+    curr_angle_tmp += step;
+    if (curr_angle_tmp > 360000){
+        curr_angle_tmp =0;
+    }
+    curr_angle = curr_angle_tmp%360000;
 }
 
-void backward(void){
-    SM_Step_Left <<= 1;
-        if (SM_Step_Left == 0x100){
-            SM_Step_Left = 0x10;
-        }
-        SMPortOUT = SM_Step_Left;
-        Timer0_A_delay_ms(StepperDelay);
+void angle_decrease(void){
+    volatile unsigned long curr_angle_tmp = curr_angle;
+    curr_angle_tmp -= step;
+    if (curr_angle_tmp < 0){
+        curr_angle_tmp =360000;
+    }
+    curr_angle = curr_angle_tmp%360000;
+}
+
+void forward(volatile long angle){
+    while(angle > 0){
+        step_forward();
+        angle_increase();
+        angle -= step;
+    }
+}
+void backward(volatile long angle){
+        while(angle > 0){
+        step_backward();
+        angle_decrease();
+        angle -= step;
+    }
+}
+void step_forward(void){
+    MOTORPort = 0x10;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x80;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x40;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x20;
+    Timer0_A_delay_ms(StepperDelay);
+}
+
+void step_backward(void){
+    MOTORPort = 0x80;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x10;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x20;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x40;
+    Timer0_A_delay_ms(StepperDelay);
+}
+
+void half_step_forward(void){
+    MOTORPort = 0x80;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0xC0;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x40;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x60;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x20;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x30;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x10;
+    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x90;
+    Timer0_A_delay_ms(StepperDelay);
 }
 //******************************************************************
 // move stepper to angle
 //******************************************************************
 
- void move_to_angle(unsigned long angle){
+void move_to_angle(unsigned long angle){
     if(curr_angle > angle){              //check which angle is bigger
         if(curr_angle-angle < 180000){   //check which direction is shortest
-            backward();
+            backward(curr_angle-angle);
         } else{
-            forward();
+            forward(curr_angle-angle);
         }
     }else{
         if(angle-curr_angle > 180000){  //check which direction is shortest
-            backward();
+            backward(curr_angle-angle);
         } else{
-            forward();
+            forward(curr_angle-angle);
         }
     }
- }
+}
 
 //******************************************************************
 // move joystick 
@@ -261,8 +318,28 @@ void MoveJoyStick(void){
 //             script funcs
 //---------------------------------------------------------------------
 
+void bling_RGB(int X){
+    for(i = 0 ; i < X ; i++){
+        RGBPort = 0x01;
+        delay_x(D);
+        RGBPort = 0x02;
+        delay_x(D);
+        RGBPort = 0x04;
+        delay_x(D);
+    }
+}
 
+void rlc_LED(int X){
+    for(i = 0 ; i < X ; i++){
 
+    }
+}
+
+void rrc_LED(int X){
+    for(i = 0 ; i < X ; i++){
+
+    }
+}
 
 
 void scan_step(unsigned long l, unsigned long r){
