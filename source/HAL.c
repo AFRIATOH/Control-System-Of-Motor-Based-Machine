@@ -5,10 +5,16 @@ unsigned int i,j;
 int tx = 1;
 volatile unsigned int Vx=460;
 volatile unsigned int Vy=460;
-unsigned int res[2] = {460, 460};
+unsigned int Vin[2] = {460, 460};
 unsigned int a, b;
 double c, alpha;
 volatile unsigned long angle;
+volatile unsigned long curr_angle = 0;
+
+volatile unsigned long left;
+volatile unsigned long right;
+volatile int arrive_left = 0;
+volatile int arrive_right = 0;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -24,6 +30,7 @@ void sysConfig(void)
 	JOYSTICKconfig();
 	LEDconfig();
 	TIMERconfig();
+
 	_BIS_SR(GIE);                     // enable interrupts globally
 }
 
@@ -118,8 +125,8 @@ __interrupt void Timer_A(void){
 #pragma vector=ADC10_VECTOR
     __interrupt void ADC10_ISR(void){
 	ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
-    Vx = res[0];
-    Vy = res[1];
+    Vx = Vin[0];
+    Vy = Vin[1];
     __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
 }
 
@@ -150,53 +157,93 @@ void DelayMs(unsigned int cnt){
 void sample(void){
 
      ADC10CTL0 |= ADC10ON;                    // ADC10 ON
-     ADC10CTL0 &= ~ENC;
-     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 core is active
-     ADC10SA = (int)res;                      // Data buffer start
+     ADC10CTL0 &= ~ENC;                       // Disable ADC10
+     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
+     ADC10SA = (int)Vin;                      // Data buffer start
      ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
-     __bis_SR_register(CPUOFF);      // LPM0, ADC10_ISR will force exit
+     __bis_SR_register(CPUOFF);               // LPM0, ADC10_ISR will force exit
      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
 }
 
 //******************************************************************
-// move joystick - //dont use atan
+// move stepper 
+//******************************************************************
+void forward(void){
+    SM_Step_Right >>= 1;
+        if (SM_Step_Right == 0x08){
+            SM_Step_Right = 0x80;
+        }
+        SMPortOUT = SM_Step_Right;
+        Timer0_A_delay_ms(StepperDelay);
+}
+
+void backward(void){
+    SM_Step_Left <<= 1;
+        if (SM_Step_Left == 0x100){
+            SM_Step_Left = 0x10;
+        }
+        SMPortOUT = SM_Step_Left;
+        Timer0_A_delay_ms(StepperDelay);
+}
+//******************************************************************
+// move stepper to angle
+//******************************************************************
+
+ void move_to_angle(unsigned long angle){
+    if(curr_angle > angle){              //check which angle is bigger
+        if(curr_angle-angle < 180000){   //check which direction is shortest
+            backward();
+        } else{
+            forward();
+        }
+    }else{
+        if(angle-curr_angle > 180000){  //check which direction is shortest
+            backward();
+        } else{
+            forward();
+        }
+    }
+ }
+
+//******************************************************************
+// move joystick 
 //******************************************************************
 void MoveJoyStick(void){
-    if (Vx > 900){                          // first or fourth quarter of x-y
-        if(Vy > 460){                             // first quarter
+    if (Vx > 900){                                                     // first or fourth quarter of x-y
+        if(Vy > 460){                                                 // first quarter
             a = Vx - 460;
             b = Vy - 460;
-            c = a/b;                          // Assign the value we will find the atan of
+            c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 459){                     // fourth quarter
+        } else if (Vy < 459){                                     // fourth quarter
             a = Vx - 460;
             b = 460 - Vy;
-            c = a/b;                          // Assign the value we will find the atan of
-            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
+            c = a/b;                                            // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;   // taylor series of arctan
             alpha = 180 - alpha;
         }
-        else{            // Vy in [radius_min, radius_max] => direction is on x axis
+        else{                                                // Vy in [radius_min, radius_max] => direction is on x axis
             alpha = 90;
         }
 
-    } else if (Vx < 100){                   // second or third quarter of x-y
-        if(Vy > 460){                             // second quarter
+    } else if (Vx < 100){                                              // second or third quarter of x-y
+        if(Vy > 460){                                                 // second quarter
             a = 460 - Vx;
             b = Vy - 460;
-            c = a/b;                          // Assign the value we will find the atan of
+            c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
-        } else if (Vy < 459){                     // third quarter
+        } else if (Vy < 459){                                    // third quarter
             a = 460 - Vx;
             b = 460 - Vy;
-            c = a/b;                          // Assign the value we will find the atan of
-            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
+            c = a/b;                                           // Assign the value we will find the atan of
+            alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;  // taylor series of arctan
             alpha = 180 + alpha;
-        } else {        // Vy in [radius_min, radius_max] => direction is on x axis
+        } else {                                             // Vy in [radius_min, radius_max] => direction is on x axis
             alpha = 270;
         }
     }
-    else{               // Vx in [radius_min, radius_max] => direction is on y axis
+    else{                                                 // Vx in [radius_min, radius_max] => direction is on y axis
         if(Vy > 900){
             alpha = 0;
         } else if (Vy < 100){
@@ -204,21 +251,48 @@ void MoveJoyStick(void){
         }
     }
     angle = (unsigned long)alpha;
-    stepper_deg(destiny_angle);
+    //angle = alpha;
+    move_to_angle(angle*1000);
     Vx = 460;
     Vy = 460;
 }
 
 //---------------------------------------------------------------------
-//            Enable interrupts
+//             script funcs
 //---------------------------------------------------------------------
-void enable_interrupts(){
-  _BIS_SR(GIE);
+
+
+
+
+
+void scan_step(unsigned long l, unsigned long r){
+
+    left = l*1000;
+    right = r*1000;
+    arrive_left = 0;
+    arrive_right = 0;
+
+    // moving to Left angle
+    move_to_angle(left);
+    // Tell PC that motor arrived to Left angle
+    if ((state == ScriptMode) && (scan_mode == 1)){
+        Got_to_left_flg = 1;
+        enable_transmition();
+        Timer0_A_delay_ms(250);
+    }
+
+    // after getting to Left angle, scan area to Right angle
+    scan_to_right();
+
+    if ((state == ScriptMode) && (scan_mode == 1)){
+        Got_to_right_flg = 1;   // update PC that motor arrived to Right angle
+        enable_transmition();
+        Timer0_A_delay_ms(250);
+
+    }
+
 }
-//---------------------------------------------------------------------
-//            Disable interrupts
-//---------------------------------------------------------------------
-void disable_interrupts(){
-  _BIC_SR(GIE);
-}
+
+
+
 
