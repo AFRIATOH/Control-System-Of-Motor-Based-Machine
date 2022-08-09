@@ -27,16 +27,16 @@ def state1(scom , enableTX , delay=0.30):
             if event == 'Back' or event == sg.WIN_CLOSED:
                 break
             if event == 'Clockwise':
-                scom.write(bytes(Clockwise, 'ascii'))
+                scom.write(bytes("Clockwise"))
                 time.sleep(delay)
             if event == 'Counter Clockwise':
-                scom.write(bytes(Counter_Clockwise, 'ascii'))
+                scom.write(bytes("Counter_Clockwise"))
                 time.sleep(delay)
             if event == 'Stop':
-                scom.write(bytes(Stop, 'ascii'))
+                scom.write(bytes("Stop"))
                 time.sleep(delay)
             if event == 'Finish':
-                scom.write(bytes(Finish, 'ascii'))
+                scom.write(bytes("Finish"))
                 time.sleep(delay)
 
 def state1(scom , enableTX , delay=0.30):
@@ -74,7 +74,7 @@ def reset_com():
 def main():
     global enableTX
     global state
-
+    delay = 0.30
     sg.theme('DarkAmber')
     #sg.theme('Dark Grey 13')
     scom = reset_com()   #reset the buffers
