@@ -3,10 +3,9 @@
 
 int D = 50;
 unsigned int i,j;
-int tx = 1;
-volatile unsigned int Vx=460;
-volatile unsigned int Vy=460;
-unsigned int Vin[2] = {460, 460};
+volatile unsigned int Vx=1650;
+volatile unsigned int Vy=1650;
+unsigned int Vin[2] = {1650, 1650};
 unsigned int a, b;
 double c, alpha;
 volatile unsigned long angle;
@@ -73,8 +72,7 @@ void enterLPM(unsigned char LPM_level){
 //*********************************************************************
 
 #pragma vector=USCIAB0RX_VECTOR
-__interrupt void USCI0RX_ISR(void)
-{
+__interrupt void USCI0RX_ISR(void){
     
 }
 
@@ -157,12 +155,12 @@ void DelayMs(unsigned int cnt){
 //******************************************************************
 void sample(void){
 
-     ADC10CTL0 |= ADC10ON;                    // ADC10 ON
+     ADC10CTL0 |= ADC10ON;                    // ADC ON
      ADC10CTL0 &= ~ENC;                       // Disable ADC10
      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
-     ADC10SA = (int)Vin;                      // Data buffer start
-     ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
-     __bis_SR_register(CPUOFF);               // LPM0, ADC10_ISR will force exit
+     ADC10SA = (int)Vin;                      // Data buffer address
+     ADC10CTL0 |= ENC + ADC10SC;              // Ensable ADC10
+     __bis_SR_register(CPUOFF);               // LPM0
      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
 }
 
@@ -170,13 +168,27 @@ void sample(void){
 // move stepper 
 //******************************************************************
 
+void continuous_move(void){
+    while(diraction != stop){
+        while (diraction == clockwise){ // moving clockwise until diraction changes
+            step_clockwise();
+            angle_increase();
+            angle -= step;
+        }
+        while (diraction == counterclockwise){ // moving counterclockwise until diraction changes
+            step_counterclockwise();
+            angle_decrease();
+            angle -= step;
+        }
+    }
+}
+
 void angle_increase(void){
     volatile unsigned long curr_angle_tmp = curr_angle;
     curr_angle_tmp += step;
     if (curr_angle_tmp > 360000){
-        curr_angle_tmp =0;
+        curr_angle = curr_angle_tmp%360000;
     }
-    curr_angle = curr_angle_tmp%360000;
 }
 
 void angle_decrease(void){
@@ -190,19 +202,19 @@ void angle_decrease(void){
 
 void forward(volatile long angle){
     while(angle > 0){
-        step_forward();
+        step_clockwise();
         angle_increase();
         angle -= step;
     }
 }
 void backward(volatile long angle){
         while(angle > 0){
-        step_backward();
+        step_counterclockwise();
         angle_decrease();
         angle -= step;
     }
 }
-void step_forward(void){
+void step_clockwise(void){
     MOTORPort = 0x10;
     Timer0_A_delay_ms(StepperDelay);
     MOTORPort = 0x80;
@@ -213,7 +225,7 @@ void step_forward(void){
     Timer0_A_delay_ms(StepperDelay);
 }
 
-void step_backward(void){
+void step_counterclockwise(void){
     MOTORPort = 0x80;
     Timer0_A_delay_ms(StepperDelay);
     MOTORPort = 0x10;
@@ -224,7 +236,7 @@ void step_backward(void){
     Timer0_A_delay_ms(StepperDelay);
 }
 
-void half_step_forward(void){
+void half_step_clockwise(void){
     MOTORPort = 0x80;
     Timer0_A_delay_ms(StepperDelay);
     MOTORPort = 0xC0;
@@ -266,15 +278,15 @@ void move_to_angle(unsigned long angle){
 // move joystick 
 //******************************************************************
 void MoveJoyStick(void){
-    if (Vx > 900){                                                     // first or fourth quarter of x-y
-        if(Vy > 460){                                                 // first quarter
-            a = Vx - 460;
-            b = Vy - 460;
+    if (Vx > 1700){                                                     // first or fourth quarter of x-y
+        if(Vy > 1700){                                                 // first quarter
+            a = Vx - 1650;
+            b = Vy - 1650;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 459){                                     // fourth quarter
-            a = Vx - 460;
-            b = 460 - Vy;
+        } else if (Vy < 1600){                                     // fourth quarter
+            a = Vx - 1650;
+            b = 1650 - Vy;
             c = a/b;                                            // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;   // taylor series of arctan
             alpha = 180 - alpha;
@@ -283,16 +295,16 @@ void MoveJoyStick(void){
             alpha = 90;
         }
 
-    } else if (Vx < 100){                                              // second or third quarter of x-y
-        if(Vy > 460){                                                 // second quarter
-            a = 460 - Vx;
-            b = Vy - 460;
+    } else if (Vx < 1580){                                              // second or third quarter of x-y
+        if(Vy > 1650){                                                 // second quarter
+            a = 1650 - Vx;
+            b = Vy - 1650;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
-        } else if (Vy < 459){                                    // third quarter
-            a = 460 - Vx;
-            b = 460 - Vy;
+        } else if (Vy < 1600){                                    // third quarter
+            a = 1650 - Vx;
+            b = 1650 - Vy;
             c = a/b;                                           // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;  // taylor series of arctan
             alpha = 180 + alpha;
@@ -301,23 +313,24 @@ void MoveJoyStick(void){
         }
     }
     else{                                                 // Vx in [radius_min, radius_max] => direction is on y axis
-        if(Vy > 900){
+        if(Vy > 1700){
             alpha = 0;
-        } else if (Vy < 100){
+        } else if (Vy < 1600){
             alpha = 180;
         }
     }
     angle = (unsigned long)alpha;
     //angle = alpha;
     move_to_angle(angle*1000);
-    Vx = 460;
-    Vy = 460;
+    Vx = 1650;
+    Vy = 1650;
 }
 
 //---------------------------------------------------------------------
 //             script funcs
 //---------------------------------------------------------------------
 
+//1
 void bling_RGB(int X){
     for(i = 0 ; i < X ; i++){
         RGBPort = 0x01;
@@ -328,21 +341,33 @@ void bling_RGB(int X){
         delay_x(D);
     }
 }
-
+//2
 void rlc_LED(int X){
     for(i = 0 ; i < X ; i++){
-
+            // להחליט לפי החיבורים שנבחר
     }
 }
-
+//3
 void rrc_LED(int X){
     for(i = 0 ; i < X ; i++){
-
+            // להחליט לפי החיבורים שנבחר
     }
 }
-
-
-void scan_step(unsigned long l, unsigned long r){
+//4
+void set_delay(int X){
+    //תלוי באיך שנשלח אותו
+}
+//5
+void clear_all(int X){
+    RGB_clear;
+    Leds_CLR;
+}
+//6
+void stepper_deg(unsigned long angle){
+    move_to_angle(angle);
+}
+//7
+void stepper_scan(unsigned long l, unsigned long r){
 
     left = l*1000;
     right = r*1000;

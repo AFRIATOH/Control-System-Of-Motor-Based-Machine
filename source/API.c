@@ -54,7 +54,7 @@ void manual_control(void){
     RGB_clear;
     Leds_CLR;
     while(state == state1){
-        while (Vx>=100 && Vx<=900 && Vy>=100 && Vy<=900){
+        while (Vx>=1700 || Vx<=1580 || Vy>=1700 || Vy<=1600){
             sample();
         }
         MoveJoyStick();
@@ -76,6 +76,7 @@ void PC_painter(void){
 void calibration(void){
     RGB_clear;
     Leds_CLR;
+    continuous_move();
 }
 
 //******************************************************************

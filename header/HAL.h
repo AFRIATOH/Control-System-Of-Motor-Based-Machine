@@ -6,8 +6,10 @@
 #include  <msp430g2553.h>               // MSP430x2xx
 //#include  <msp430xG46x.h>             // MSP430x4xx 
 
-extern enum FSMstate state;   // global variable
-extern enum SYSmode lpm_mode; // global variable
+extern enum FSMstate state;              // global variable
+extern enum SYSmode lpm_mode;           // global variable
+extern enum MovingDiraction diraction; // global variable
+
 
 extern int tx;
 
@@ -32,13 +34,15 @@ extern void sample(void);
 extern void MoveJoyStick(void);
 
 //move motor
+
+extern void continuous_move(void);
 extern void angle_increase(void);
 extern void angle_decrease(void);
 extern void forward(volatile long);
 extern void backward(volatile long);
-extern void step_forward(void);
-extern void step_backward(void);
-extern void half_step_forward(void);
+extern void step_clockwise(void);
+extern void step_counterclockwise(void);
+extern void half_step_clockwise(void);
 extern void move_to_angle(unsigned long);
 
 // script funcs

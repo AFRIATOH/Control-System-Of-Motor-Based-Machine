@@ -3,6 +3,7 @@
 
 enum FSMstate state;
 enum SYSmode lpm_mode;
+enum MovingDiraction diraction;
 
 extern unsigned int X_delay = 500;
 

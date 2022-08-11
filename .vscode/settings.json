@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "MSP430x2xx - Flash and DCO"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}
