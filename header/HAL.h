@@ -8,10 +8,22 @@
 
 extern enum FSMstate state;              // global variable
 extern enum SYSmode lpm_mode;           // global variable
-extern enum MovingDiraction diraction; // global variable
+extern enum MovingDiraction MoveDiraction; // global variable
+extern enum PainterMode PaintMode;         // global variable
 
+typedef struct Scripts{
+    int num;
+    int size[3];
+    int lines[3];
+    int written[3];
+    int first_written[3];
+    char *scripte_loc[3];
+}Scripts;
 
-extern int tx;
+extern volatile unsigned int MessegeType;
+extern volatile int MotorDelay;
+extern volatile unsigned long curr_angle;
+extern Scripts script;
 
 // System
 extern void sysConfig(void);
@@ -19,9 +31,6 @@ extern void enterLPM(unsigned char);
 
 // Interrupts
 void _buttonDebounceDelay(int button);
-
-extern void sample(void);
-extern void MoveJoyStick(void);
 
 // Delays
 extern void DelayMs(unsigned int);
@@ -31,10 +40,10 @@ extern void delay_x(unsigned int);
 
 //sample
 extern void sample(void);
-extern void MoveJoyStick(void);
+extern void MoveMotorToJoyStick(void);
 
 //move motor
-
+extern void StepCalculation(void);
 extern void continuous_move(void);
 extern void angle_increase(void);
 extern void angle_decrease(void);

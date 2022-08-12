@@ -10,46 +10,22 @@ unsigned int a, b;
 double c, alpha;
 volatile unsigned long angle;
 volatile unsigned long curr_angle = 0;
+volatile unsigned long StepSize = 88;
+volatile int StepCounter = 0;
+volatile int MotorDelay = 2;
+volatile unsigned int MessegeType;
 
-volatile unsigned long left;
-volatile unsigned long right;
-volatile int arrive_left = 0;
-volatile int arrive_right = 0;
+Scripts script = {
+    1,
+    {0},
+    {0},
+    {0},
+    {0},
+    {(char*)0xF800, (char*)0xFA00, (char*)0xFC00}
+};
 
-//--------------------------------------------------------------------
-//             System Configuration  
-//--------------------------------------------------------------------
-void sysConfig(void)
-{ 
-	WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
-
-	UARTconfig();
-	ADCconfig();
-	RGBconfig();
-	MOTORconfig();
-	JOYSTICKconfig();
-	LEDconfig();
-	TIMERconfig();
-
-	_BIS_SR(GIE);                     // enable interrupts globally
-}
-
-//---------------------------------------------------------------------
-//            Polling based Delay function
-//---------------------------------------------------------------------
-void delay(unsigned int t){  // t[msec]
-	volatile unsigned int i;
-	for(i=t; i>0; i--);
-}
-
-//---------------------------------------------------------------------
-//            Delay function
-//---------------------------------------------------------------------
-void delay_x(unsigned int t){  // t[msec]
-  CCTL0 = CCIE;                             // CCR0 interrupt enabled
-  CCR0 = t*130;
-  __bis_SR_register(CPUOFF);
-}
+unsigned int StateFlag = 0;
+unsigned int MessegeDept = 0;
 
 //---------------------------------------------------------------------
 //            Enter from LPM0 mode
@@ -67,13 +43,93 @@ void enterLPM(unsigned char LPM_level){
 	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
 }
 
+//******************************************************************
+//          System Configuration 
+//******************************************************************
+void sysConfig(void)
+{ 
+	WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
+
+    GPIOconfig();
+	UARTconfig();
+	RGBconfig();
+	MOTORconfig();
+	JOYSTICKconfig();
+	LEDconfig();
+	TIMERconfig();
+	ADCconfig();
+
+	_BIS_SR(GIE);                     // enable interrupts globally
+}
+
+//******************************************************************
+//          Delay msec functions
+//******************************************************************
+void DelayMs(int ms){
+    TA0CCR0 = ms*130;
+    TA0CCTL0 = CCIE;     // CCR0 interrupt enabled
+    TACTL = MC_1;        // up mode
+    __bis_SR_register(CPUOFF);
+}
+
+void Delay10Ms(int ms10){
+    TA0CCR0 = ms10*1300;
+    TA0CCTL0 = CCIE;     // CCR0 interrupt enabled
+    TACTL = MC_1;        // up mode
+    //if needed
+    //TA1CCR0 = ms10*1300;
+    //TA1CCTL0 = CCIE;     // CCR1 interrupt enabled
+    //TA1CTL = MC_1;        // up mode
+    __bis_SR_register(CPUOFF);
+}
+
+void DebounceDelay(int button){
+    volatile unsigned int i;
+    for(i = 1000; i > 0; i--);                     //delay, button debounce
+    while(!(JOYSTICKPortIN & button));          // wait of release the button
+    for(i = 1000; i > 0; i--);                     //delay, button debounce
+    P1IFG &= ~button;             // manual clear of p1.button
+}
+
 //*********************************************************************
 //            UART RX Interrupt Service Rotine
 //*********************************************************************
 
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void){
+    MessegeType = UCA0RXBUF;
     
+    if(MessegeType == "!"){
+        StateFlag = 1;
+        MessegeDept = 1;
+    } else if(StateFlag == 1){
+        if(MessegeDept == 1){
+            state = UCA0RXBUF;
+            MessegeDept = 2;
+            PaintMode = ignore;
+            MoveDiraction = hold;
+            if((state == state1)){
+                StateFlag = 0;
+                MessegeDept = 0;
+                __bis_SR_register(CPUOFF);
+            }
+            if(state == state2){
+                PainterMode = neutral;
+                MessegeDept = 0;
+                StateFlag = 0;
+                __bis_SR_register(CPUOFF);
+            }  
+        }else if((MessegeDept == 2) && (state == state3)){
+            MoveDiraction = UCA0RXBUF;
+            if(MoveDiraction == stop){
+                MessegeDept = 0;
+                StateFlag = 0;
+            }
+            __bis_SR_register(CPUOFF);
+        }else if((MessegeDept == 2) && (state == state4)){
+            //script mode
+        }
+    }
 }
 
 //*********************************************************************
@@ -85,41 +141,53 @@ __interrupt void USCI0TX_ISR(void){
 
 }
 
-//------------------------------------------------------------------
-void DebounceDelay(int button){
-    volatile unsigned int i;
-    for(i = 1000; i > 0; i--);                     //delay, button debounce
-    while(!(P1IN & button));          // wait of release the button
-    for(i = 1000; i > 0; i--);                     //delay, button debounce
-    P1IFG &= ~button;             // manual clear of p1.button
-}
-//------------------------------------------------------------------
-//           Port1 Interrupt Service Rotine 
-//------------------------------------------------------------------
+//*********************************************************************
+//            Port1 Interrupt Service Rotine 
+//*********************************************************************
 
 #pragma vector=PORT1_VECTOR
 __interrupt void PORT1_ISR(void){
-    if(P1IFG & 0x10){
-        DebounceDelay(0x10);
-        tx = 1;
-        UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-        IE2 |= UCA0TXIE;                          // Enable USCI_A0 TX interrupt
+    if(JOYSTICKIntPending & 0x01){       //JoyStick Button Press
+        DebounceDelay(0x01);
+        if(FSMstate == state2){
+            if(PaintMode == neutral){
+                PaintMode = write;
+            }
+            else if(PaintMode == write){
+                PaintMode = erase;
+            }
+            else if(PaintMode == erase){
+                PaintMode = neutral;
+            }
+        }
     }
 }
 
-//------------------------------------------------------------------
-//           Timer A0 Interrupt Service Rotine 
-//------------------------------------------------------------------
+//*********************************************************************
+//            Timer A0 Interrupt Service Rotine 
+//*********************************************************************
 
 #pragma vector=TIMER0_A0_VECTOR
-__interrupt void Timer_A(void){
-	CCTL0 &= ~CCIE;                        	     // CCR0 interrupt enabled
+__interrupt void Timer_A0(void){
+    TACCTL0 &= ~CCIE;                   // CCR0 interrupt disabled
+	TACTL = MC_0;                       // stop clock
 	__bic_SR_register_on_exit(CPUOFF);  // Exit LPM0 on return to main
 }
 
-//------------------------------------------------------------------
-//           ADC Interrupt Service Rotine 
-//------------------------------------------------------------------
+//*********************************************************************
+//            Timer A1 Interrupt Service Rotine 
+//*********************************************************************
+
+#pragma vector=TIMER0_A1_VECTOR
+__interrupt void Timer_A1(void){
+    TA1CCTL0 &= ~CCIE;                   // CCR0 interrupt disabled
+	TA1CTL = MC_0;                       // stop clock
+	__bic_SR_register_on_exit(CPUOFF);  // Exit LPM0 on return to main
+}
+
+//*********************************************************************
+//            ADC Interrupt Service Rotine 
+//*********************************************************************
 
 #pragma vector=ADC10_VECTOR
     __interrupt void ADC10_ISR(void){
@@ -129,29 +197,9 @@ __interrupt void Timer_A(void){
     __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
 }
 
-//******************************************************************
-// Delay usec functions
-//******************************************************************
-void DelayUs(unsigned int cnt){
-
-	unsigned char i;
-        for(i=cnt ; i>0 ; i--) asm(" nop"); // tha command asm("nop") takes raphly 1usec
-
-}
 
 //******************************************************************
-// Delay msec functions
-//******************************************************************
-void DelayMs(unsigned int cnt){
-
-	unsigned char i;
-        for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
-
-}
-
-
-//******************************************************************
-// smaple
+//            smaple
 //******************************************************************
 void sample(void){
 
@@ -159,103 +207,106 @@ void sample(void){
      ADC10CTL0 &= ~ENC;                       // Disable ADC10
      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
      ADC10SA = (int)Vin;                      // Data buffer address
-     ADC10CTL0 |= ENC + ADC10SC;              // Ensable ADC10
+     ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
      __bis_SR_register(CPUOFF);               // LPM0
      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
 }
 
 //******************************************************************
-// move stepper 
+//            move stepper 
 //******************************************************************
 
+void StepCalculation(void){
+    curr_angle =0;
+    StepSize = 360000/StepCounter;
+}
+
 void continuous_move(void){
-    while(diraction != stop){
-        while (diraction == clockwise){ // moving clockwise until diraction changes
+    while(MoveDiraction != stop){
+        while (MoveDiraction == clockwise){ // moving clockwise until diraction changes
             step_clockwise();
+            StepCounter++;
             angle_increase();
-            angle -= step;
         }
-        while (diraction == counterclockwise){ // moving counterclockwise until diraction changes
+        while (MoveDiraction == counterclockwise){ // moving counterclockwise until diraction changes
             step_counterclockwise();
+            StepCounter--;
             angle_decrease();
-            angle -= step;
         }
     }
 }
 
 void angle_increase(void){
-    volatile unsigned long curr_angle_tmp = curr_angle;
-    curr_angle_tmp += step;
-    if (curr_angle_tmp > 360000){
-        curr_angle = curr_angle_tmp%360000;
+    curr_angle += StepSize;
+    if (curr_angle > 360000){
+        curr_angle = curr_angle%360000;
     }
 }
 
 void angle_decrease(void){
-    volatile unsigned long curr_angle_tmp = curr_angle;
-    curr_angle_tmp -= step;
-    if (curr_angle_tmp < 0){
-        curr_angle_tmp =360000;
+    curr_angle -= StepSize;
+    if (curr_angle < 0){
+        curr_angle =360000;
     }
-    curr_angle = curr_angle_tmp%360000;
+    curr_angle = curr_angle%360000;
 }
 
 void forward(volatile long angle){
     while(angle > 0){
         step_clockwise();
         angle_increase();
-        angle -= step;
+        angle -= StepSize;
     }
 }
 void backward(volatile long angle){
         while(angle > 0){
         step_counterclockwise();
         angle_decrease();
-        angle -= step;
+        angle -= StepSize;
     }
 }
 void step_clockwise(void){
-    MOTORPort = 0x10;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x80;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x40;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x20;
-    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x01;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x08;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x04;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x02;
+    Timer0_A_delay_ms(MotorDelay);
 }
 
 void step_counterclockwise(void){
-    MOTORPort = 0x80;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x10;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x20;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x40;
-    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x08;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x01;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x02;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x04;
+    Timer0_A_delay_ms(MotorDelay);
 }
 
 void half_step_clockwise(void){
-    MOTORPort = 0x80;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0xC0;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x40;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x60;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x20;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x30;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x10;
-    Timer0_A_delay_ms(StepperDelay);
-    MOTORPort = 0x90;
-    Timer0_A_delay_ms(StepperDelay);
+    MOTORPort = 0x08;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x0C;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x04;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x06;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x02;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x03;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x01;
+    Timer0_A_delay_ms(MotorDelay);
+    MOTORPort = 0x09;
+    Timer0_A_delay_ms(MotorDelay);
 }
 //******************************************************************
-// move stepper to angle
+//            move stepper to angle
 //******************************************************************
 
 void move_to_angle(unsigned long angle){
@@ -274,48 +325,48 @@ void move_to_angle(unsigned long angle){
     }
 }
 
+//****************************************************************** 
+//            move according to joystick
 //******************************************************************
-// move joystick 
-//******************************************************************
-void MoveJoyStick(void){
-    if (Vx > 1700){                                                     // first or fourth quarter of x-y
-        if(Vy > 1700){                                                 // first quarter
+void MoveMotorToJoyStick(void){
+    if (Vx > 1700){                                                     // Vx dir is right
+        if(Vy > 1700){                                                 // Vy dir is up
             a = Vx - 1650;
             b = Vy - 1650;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 1600){                                     // fourth quarter
+        } else if (Vy < 1600){                                    // Vy dir is down
             a = Vx - 1650;
             b = 1650 - Vy;
             c = a/b;                                            // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;   // taylor series of arctan
             alpha = 180 - alpha;
         }
-        else{                                                // Vy in [radius_min, radius_max] => direction is on x axis
+        else{                                                // Vy is in the middle -> angle is 90
             alpha = 90;
         }
 
-    } else if (Vx < 1580){                                              // second or third quarter of x-y
-        if(Vy > 1650){                                                 // second quarter
+    } else if (Vx < 1580){                                              // Vx dir is left
+        if(Vy > 1700){                                                 // Vy dir is up
             a = 1650 - Vx;
             b = Vy - 1650;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
-        } else if (Vy < 1600){                                    // third quarter
+        } else if (Vy < 1600){                                    // Vy dir is down
             a = 1650 - Vx;
             b = 1650 - Vy;
             c = a/b;                                           // Assign the value we will find the atan of
             alpha = (c - ((c^3)/3) + ((c^5)/5)) * 180 / Phi;  // taylor series of arctan
             alpha = 180 + alpha;
-        } else {                                             // Vy in [radius_min, radius_max] => direction is on x axis
+        } else {                                             // Vy is in the middle -> angle is 270
             alpha = 270;
         }
     }
-    else{                                                 // Vx in [radius_min, radius_max] => direction is on y axis
-        if(Vy > 1700){
+    else{                                                 // Vx is in the middle
+        if(Vy > 1700){                                   // Vy dir is up -> angle is 0
             alpha = 0;
-        } else if (Vy < 1600){
+        } else if (Vy < 1600){                          // Vy dir is down -> angle is 180
             alpha = 180;
         }
     }
@@ -326,72 +377,91 @@ void MoveJoyStick(void){
     Vy = 1650;
 }
 
-//---------------------------------------------------------------------
-//             script funcs
-//---------------------------------------------------------------------
+
+//******************************************************************
+//            script funcs
+//******************************************************************
+
+void read_script(void){
+    __bis_SR_register(CPUOFF);               // LPM0
+    script.num = ScriptNum;
+    for
+}
 
 //1
 void bling_RGB(int X){
     for(i = 0 ; i < X ; i++){
-        RGBPort = 0x01;
-        delay_x(D);
-        RGBPort = 0x02;
-        delay_x(D);
-        RGBPort = 0x04;
-        delay_x(D);
+        RGBPort = 0x20;
+        Delay10Ms(D);
+        RGBPort = 0x40;
+        Delay10Ms(D);
+        RGBPort = 0x80;
+        Delay10Ms(D);
     }
 }
+
 //2
 void rlc_LED(int X){
     for(i = 0 ; i < X ; i++){
-            // להחליט לפי החיבורים שנבחר
+        LEDPortOUT = 0x10;
+        Delay10Ms(D);
+        LEDPortOUT = 0x20;
+        Delay10Ms(D);
+        LEDPortOUT = 0x40;
+        Delay10Ms(D);
+        LEDPortOUT = 0x80;
+        Delay10Ms(D);
     }
 }
+
 //3
 void rrc_LED(int X){
     for(i = 0 ; i < X ; i++){
-            // להחליט לפי החיבורים שנבחר
+        LEDPortOUT = 0x80;
+        Delay10Ms(D);
+        LEDPortOUT = 0x40;
+        Delay10Ms(D);
+        LEDPortOUT = 0x20;
+        Delay10Ms(D);
+        LEDPortOUT = 0x10;
+        Delay10Ms(D);
     }
 }
+
 //4
 void set_delay(int X){
     //תלוי באיך שנשלח אותו
 }
+
 //5
 void clear_all(int X){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
 }
+
 //6
 void stepper_deg(unsigned long angle){
     move_to_angle(angle);
 }
+
 //7
 void stepper_scan(unsigned long l, unsigned long r){
 
-    left = l*1000;
-    right = r*1000;
-    arrive_left = 0;
-    arrive_right = 0;
-
     // moving to Left angle
-    move_to_angle(left);
+    move_to_angle(l*1000);
+
     // Tell PC that motor arrived to Left angle
-    if ((state == ScriptMode) && (scan_mode == 1)){
-        Got_to_left_flg = 1;
-        enable_transmition();
-        Timer0_A_delay_ms(250);
+
+    DelayMs(1000);
+
+    // moving to Right angle
+    if(r >= l){
+        forward((r-l)*1000);
+    } else{
+        forward((360+r-l)*1000);
     }
 
-    // after getting to Left angle, scan area to Right angle
-    scan_to_right();
-
-    if ((state == ScriptMode) && (scan_mode == 1)){
-        Got_to_right_flg = 1;   // update PC that motor arrived to Right angle
-        enable_transmition();
-        Timer0_A_delay_ms(250);
-
-    }
+    // Tell PC that motor arrived to Left angle
 
 }
 

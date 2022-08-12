@@ -28,11 +28,11 @@
 #define MOTORPortSel        P2SEL
 #define MOTORPortDir        P2DIR
 
-//RGB - Port 2
-#define RGBPort           	P2OUT
-#define RGBPortSel          P2SEL
-#define RGBPortDir        	P2DIR
-#define RGB_clear RGBPort &= ~(BIT0 + BIT1 + BIT2)     //clear RGBs
+//RGB - Port 1
+#define RGBPort           	P1OUT
+#define RGBPortSel          P1SEL
+#define RGBPortDir        	P1DIR
+#define RGB_clear RGBPort &= ~(BIT5 + BIT6 + BIT7)     //clear RGB
 
 //JOYSTICK - Port 1
 #define JOYSTICKPortIN       P1IN
@@ -42,19 +42,12 @@
 #define JOYSTICKIntPending   P1IFG
 #define JOYSTICKIntEdgeSel   P1IES
 
-//JOYSTICK - Port 1
-// P1 LEDs: 1.7,1.6,1.0, P2 LEDs: P2.7
-// Port 1
-#define  LEDPort1Sel     P1SEL
-#define  LEDPort1Dir     P1DIR
-#define  LEDPort1OUT     P1OUT
-// Port 2
-#define  LEDPort2Sel     P2SEL
-#define  LEDPort2Dir     P2DIR
-#define  LEDPort2OUT     P2OUT
+//LED - Port 2
+#define  LEDPortSel     P2SEL
+#define  LEDPortDir     P2DIR
+#define  LEDPortOUT     P2OUT
 
-#define Leds_CLR  LEDPort1OUT &= ~(BIT7 + BIT6 + BIT0);\
-                  LEDPort2OUT &= ~(BIT7 + BIT6 + BIT5 + BIT4 + BIT2);
+#define Leds_clear  LEDPortOUT &= ~(BIT4 + BIT5 + BIT6 + BIT7);
 
 extern void GPIOconfig(void);
 extern void TIMERconfig(void);

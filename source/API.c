@@ -43,7 +43,7 @@ int str_to_int( char volatile *str)
 //******************************************************************
 void sleep(void){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
     __bis_SR_register(CPUOFF); 
 }
 
@@ -52,12 +52,12 @@ void sleep(void){
 //******************************************************************
 void manual_control(void){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
     while(state == state1){
         while (Vx>=1700 || Vx<=1580 || Vy>=1700 || Vy<=1600){
             sample();
         }
-        MoveJoyStick();
+        MoveMotorToJoyStick();
     }
 }
 
@@ -66,7 +66,7 @@ void manual_control(void){
 //******************************************************************
 void PC_painter(void){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
     sample();
 }
 
@@ -75,8 +75,11 @@ void PC_painter(void){
 //******************************************************************
 void calibration(void){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
+    StepCounter = 0;
     continuous_move();
+    StepCalculation();
+    state = state0;
 }
 
 //******************************************************************
@@ -84,7 +87,8 @@ void calibration(void){
 //******************************************************************
 void script_mode(void){
     RGB_clear;
-    Leds_CLR;
+    Leds_clear;
+    read_script();
 }
 
 

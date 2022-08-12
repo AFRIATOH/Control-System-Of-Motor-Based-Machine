@@ -3,6 +3,9 @@
 
 #include  "../header/HAL.h"     // private library - HAL layer
 
+
+extern volatile int StepCounter;
+
 extern void int_to_str(char *str, unsigned int number);
 extern int str_to_int( char volatile *str);
 

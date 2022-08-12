@@ -3,7 +3,8 @@
 
 enum FSMstate state;
 enum SYSmode lpm_mode;
-enum MovingDiraction diraction;
+enum MovingDiraction MoveDiraction;
+enum PainterMode PaintMode; // global variable
 
 extern unsigned int X_delay = 500;
 
