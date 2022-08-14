@@ -38,7 +38,7 @@ void main(void){
       break;
 
       case state4: 
-            script_mode(); // Script Mode
+            //script_mode(); // Script Mode
       break; 
   
       default:
