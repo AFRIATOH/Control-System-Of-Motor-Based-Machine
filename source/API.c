@@ -55,10 +55,10 @@ void manual_control(void){
     RGB_clear;
     Leds_clear;
     while(state == state1){
-        while (Vx>=1700 || Vx<=1580 || Vy>=1700 || Vy<=1600){
-            sample();
-        }
+        sample();
+        while (Vx>=468 || Vx<=462 || Vy>=498 || Vy<=492){
         MoveMotorToJoyStick();
+        }
     }
 }
 

@@ -4,10 +4,9 @@
 
 int D = 50;
 unsigned int i,j;
-volatile unsigned int Vx=1650;
-volatile unsigned int Vy=1650;
-unsigned int Vin[2] = {1650, 1650};
-unsigned int res[2] = {460, 460};
+volatile unsigned int Vx=465;
+volatile unsigned int Vy=495;
+unsigned int Vin[2] = {465, 495};
 unsigned int a, b;
 double c;
 double alpha;
@@ -193,20 +192,14 @@ __interrupt void Timer_A1(void){
 //            ADC Interrupt Service Rotine 
 //*********************************************************************
 
-// #pragma vector=ADC10_VECTOR
-//     __interrupt void ADC10_ISR(void){
-// 	ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
-//     Vx = Vin[0];
-//     Vy = Vin[1];
-//     __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear LPM0_bits + GIE bit from 0(SR)
-// }
-#pragma vector=ADC10_VECTOR
- __interrupt void ADC10_ISR(void){
-    ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
-    Vx = res[0];
-    Vy = res[1];
-  __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear CPUOFF bit from 0(SR)
-}
+ #pragma vector=ADC10_VECTOR
+     __interrupt void ADC10_ISR(void){
+ 	ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
+     Vx = Vin[0];
+     Vy = Vin[1];
+     __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear LPM0_bits + GIE bit from 0(SR)
+ }
+
 //******************************************************************
 //            UART functions
 //******************************************************************
@@ -272,28 +265,28 @@ void AddToBuffer(unsigned int num){
 //******************************************************************
 //            smaple
 //******************************************************************
-// void sample(void){
+ void sample(void){
 
-//      ADC10CTL0 |= ADC10ON;                    // ADC ON
-//      ADC10CTL0 &= ~ENC;                       // Disable ADC10
-//      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
-//      ADC10SA = (int)Vin;                      // Data buffer address
-//      ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
-//      __bis_SR_register(LPM0_bits + GIE);               // LPM0
-//      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
-// }
-
-void sample(void){
-     ADC10CTL0 |= ADC10ON;                    // ADC10 ON
-
-     ADC10CTL0 &= ~ENC;
-     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 core is active
-     ADC10SA = (int)res;                      // Data buffer start
-     ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
-     __bis_SR_register(LPM0_bits + GIE);      // LPM0, ADC10_ISR will force exit
-
-     ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
+      ADC10CTL0 |= ADC10ON;                    // ADC ON
+      ADC10CTL0 &= ~ENC;                       // Disable ADC10
+      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
+      ADC10SA = (int)Vin;                      // Data buffer address
+      ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
+      __bis_SR_register(LPM0_bits + GIE);               // LPM0
+      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
  }
+
+//void sample(void){
+//     ADC10CTL0 |= ADC10ON;                    // ADC10 ON
+//
+//     ADC10CTL0 &= ~ENC;
+//     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 core is active
+//     ADC10SA = (int)Vin;                      // Data buffer start
+//     ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
+//     __bis_SR_register(LPM0_bits + GIE);      // LPM0, ADC10_ISR will force exit
+//
+//     ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
+// }
 
 //******************************************************************
 //            move stepper 
@@ -401,9 +394,9 @@ void move_to_angle(unsigned long angle){
         }
     }else{
         if(angle-curr_angle > 180000){  //check which direction is shortest
-            backward(curr_angle-angle);
+            backward(angle-curr_angle);
         } else{
-            forward(curr_angle-angle);
+            forward(angle-curr_angle);
         }
     }
 }
@@ -412,15 +405,15 @@ void move_to_angle(unsigned long angle){
 //            move according to joystick
 //******************************************************************
 void MoveMotorToJoyStick(void){
-    if (Vx > 1700){                                                     // Vx dir is right
-        if(Vy > 1700){                                                 // Vy dir is up
-            a = Vx - 1650;
-            b = Vy - 1650;
+    if (Vx > 468){                                                     // Vx dir is right
+        if(Vy > 498){                                                 // Vy dir is up
+            a = Vx - 465;
+            b = Vy - 495;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 1600){                                    // Vy dir is down
-            a = Vx - 1650;
-            b = 1650 - Vy;
+        } else if (Vy < 492){                                    // Vy dir is down
+            a = Vx - 465;
+            b = 495 - Vy;
             c = a/b;                                            // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;   // taylor series of arctan
             alpha = 180 - alpha;
@@ -429,16 +422,16 @@ void MoveMotorToJoyStick(void){
             alpha = 90;
         }
 
-    } else if (Vx < 1580){                                              // Vx dir is left
-        if(Vy > 1700){                                                 // Vy dir is up
-            a = 1650 - Vx;
-            b = Vy - 1650;
+    } else if (Vx < 462){                                              // Vx dir is left
+        if(Vy > 498){                                                 // Vy dir is up
+            a = 465 - Vx;
+            b = Vy - 495;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
-        } else if (Vy < 1600){                                    // Vy dir is down
-            a = 1650 - Vx;
-            b = 1650 - Vy;
+        } else if (Vy < 492){                                    // Vy dir is down
+            a = 465 - Vx;
+            b = 495 - Vy;
             c = a/b;                                           // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;  // taylor series of arctan
             alpha = 180 + alpha;
@@ -447,17 +440,17 @@ void MoveMotorToJoyStick(void){
         }
     }
     else{                                                 // Vx is in the middle
-        if(Vy > 1700){                                   // Vy dir is up -> angle is 0
+        if(Vy > 498){                                   // Vy dir is up -> angle is 0
             alpha = 0;
-        } else if (Vy < 1600){                          // Vy dir is down -> angle is 180
+        } else if (Vy < 492){                          // Vy dir is down -> angle is 180
             alpha = 180;
         }
     }
     angle = (unsigned long)alpha;
     //angle = alpha;
     move_to_angle(angle*1000);
-    Vx = 1650;
-    Vy = 1650;
+    Vx = 465;
+    Vy = 495;
 }
 
 
