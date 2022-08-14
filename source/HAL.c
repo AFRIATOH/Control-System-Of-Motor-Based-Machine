@@ -101,7 +101,6 @@ void DebounceDelay(int button){
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void){
     MessegeType = UCA0RXBUF;
-    
     if(MessegeType == "!"){
         StateFlag = 1;
         MessegeDept = 1;
@@ -220,6 +219,7 @@ void SendInfo(void){
     if(state == state2){
         BufferArray[BufferLocation++]='!';
         BufferLocation += 2;
+        AddToBuffer(PainterMode);
         AddToBuffer(Vx);
         AddToBuffer(Vy);
         int len = BufferLocation;
