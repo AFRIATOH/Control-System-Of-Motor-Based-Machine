@@ -27,13 +27,14 @@ void int_to_str(char *str, unsigned int number){
     str[size] = '\0';
 }
 
-int str_to_int( char volatile *str)
+int str_to_int_ScriptRx( char volatile *str)
 {
     int i,res = 0;
-    for (i = 0; str[i] != '\0'; ++i) {
+    for (i = ScriptIndex; str[i] != '-'; ++i) {
         if (str[i]> '9' || str[i]<'0')
             return -1;
         res = res * 10 + str[i] - '0';
+        ScriptIndex++;
     }
 
     return res;

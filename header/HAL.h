@@ -14,22 +14,29 @@ extern enum PainterMode PaintMode;         // global variable
 typedef struct Scripts{
     int num;
     int size[3];
-    int lines[3];
-    int written[3];
-    int first_written[3];
+    int line[3];
+    int Written[3];
+    int first_Written[3];
     char *scripte_loc[3];
 }Scripts;
 
 extern volatile unsigned int MessegeType;
 extern volatile int MotorDelay;
 extern volatile unsigned long curr_angle;
-extern Scripts script;
+extern Scripts scriptt;
 extern volatile unsigned int Vx;
 extern volatile unsigned int Vy;
 extern volatile unsigned int VxPrev;
 extern volatile unsigned int VyPrev;
 extern unsigned int ArriveToZeroAngle;
-extern volatile char ScriptNum;
+extern volatile int ScriptNum;
+extern volatile int ScriptNumFlag;
+extern volatile int WriteOnFlash;
+extern int ScriptIndex;
+extern volatile char ScriptRx[10];
+extern int ScriptReadIndex;
+extern int WriteOnFlashFlag;
+extern int CountScriptSize;
 
 // System
 extern void sysConfig(void);

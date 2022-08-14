@@ -21,9 +21,16 @@ volatile unsigned int MessegeType;
 unsigned int InfoReq = 0;
 volatile char BufferArray[30];
 volatile unsigned int BufferLocation;
-volatile char ScriptNum;
+volatile int ScriptNum;
+volatile int ScriptNumFlag = 1;
+volatile int WriteOnFlash = 0;
+int ScriptIndex;
+volatile char ScriptRx[10];
+int ScriptReadIndex;
+int WriteOnFlashFlag;
+int CountScriptSize;
 
-Scripts script = {
+Scripts scriptt = {
     1,
     {0},
     {0},
@@ -88,16 +95,18 @@ void DebounceDelay(int button){
 __interrupt void USCI0RX_ISR(void){
     MessegeType = UCA0RXBUF;
 
-    if(MessegeType == '@'){
+    if(MessegeType == '!'){
+        StateFlag = 1;
+        MessegeDept = 1;
+    }else if(MessegeType == '@'){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    }else if(StateFlag == 0){
-        if(MessegeDept == 0){
+    }else if(StateFlag == 1){
+        if(MessegeDept == 1){
             state = UCA0RXBUF -'0';
             PaintMode = ignore;
-            MessegeDept = 1;
-            StateFlag = 1;
+            MessegeDept = 2;
             if((state == state1)){
                 ArriveToZeroAngle = 0;
             }
@@ -105,24 +114,34 @@ __interrupt void USCI0RX_ISR(void){
                 PaintMode = neutral;
             }
             if(state == state3){
-            MoveDiraction = hold;
+                MoveDiraction = hold;
             }
         }
-     }else if((MessegeDept == 1) && (state == state1) && (ArriveToZeroAngle == 0)){
+     }else if((MessegeDept == 2) && (state == state1) && (ArriveToZeroAngle == 0)){
         MoveDiraction = UCA0RXBUF -'0';
         if(MoveDiraction == stop){
             ArriveToZeroAngle = 1;
             StateFlag = 0;
-            MessegeDept = 0;
+            MessegeDept = 1;
         }
-    }else if((MessegeDept == 1) && (state == state3)){
+    }else if((MessegeDept == 2) && (state == state3)){
         MoveDiraction = UCA0RXBUF -'0';
         if(MoveDiraction == stop){
             MessegeDept = 0;
             StateFlag = 0;
         }
-    }else if((MessegeDept == 1) && (state == state4)){
+    }else if((MessegeDept == 2) && (state == state4)){
+        MessegeDept = 0;
+        if(WriteOnFlash == 0){
+            if(ScriptNumFlag == 1){
+                ScriptNumFlag = 0;
+                ScriptNum = UCA0RXBUF - '0';
+            } else{
+                ScriptRx[ScriptIndex++] = UCA0RXBUF;
+            }
+        } else if(WriteOnFlashFlag == 1){
 
+        }
 
     }
     __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
@@ -450,8 +469,33 @@ void MoveMotorToJoyStick(void){
 
 void read_script(void){
    __bis_SR_register(LPM0_bits + GIE);               // LPM0
-   script.num = ScriptNum;
-   for
+   scriptt.num = ScriptNum;
+   ScriptIndex = 0;
+   int k = 0;
+   while(k<2){
+        __bis_SR_register(LPM0_bits + GIE);
+        if(ScriptRx[ScriptIndex-1] == '-'){
+            k++;
+        }
+   }
+   ScriptNumFlag = 1;
+   ScriptIndex = 0;
+   if(scriptt.Written[scriptt.num-1] == 0){
+        scriptt.size[scriptt.num-1] = str_to_int_ScriptRx(ScriptRx);
+        ScriptIndex++;
+        scriptt.line[scriptt.num-1] = str_to_int_ScriptRx(ScriptRx);
+        CountScriptSize = scriptt.size[scriptt.num-1];
+        ScriptReadIndex = 0;
+        WriteOnFlashFlag = 1;
+        for(k=0; k<CountScriptSize; k++){
+            __bis_SR_register(LPM0_bits + GIE);
+        }
+        //write script to flash
+        scriptt.Written[scriptt.num-1] = 1;
+        WriteOnFlash = 0;
+        //send ack
+   }
+
 }
 
 //1
