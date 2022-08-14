@@ -111,10 +111,11 @@ __interrupt void USCI0RX_ISR(void){
                 MessegeDept = 0;
                 StateFlag = 0;
                 __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
-            }  
-        }else if((MessegeDept == 1) && (state == state1) && (ArriveToZeroAngle == 0)){
+            }
+        }
+     }else if((MessegeDept == 1) && (state == state1) && (ArriveToZeroAngle == 0)){
             PaintMode = UCA0RXBUF -'0';
-            if(MovingDiraction == stop){
+            if(MoveDiraction == stop){
                 MoveDiraction = hold;
                 ArriveToZeroAngle = 1;
                 StateFlag = 0;
@@ -130,7 +131,6 @@ __interrupt void USCI0RX_ISR(void){
         }else if((MessegeDept == 2) && (state == state4)){
             //script mode
         }
-    }
 }
 
 //*********************************************************************
@@ -270,7 +270,7 @@ void AddToBuffer(unsigned int num){
     BufferArray[BufferLocation++] = '-';
 }
 //******************************************************************
-//            smaple
+// Sample
 //******************************************************************
 void sample(void){
 

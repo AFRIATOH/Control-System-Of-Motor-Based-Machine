@@ -28,6 +28,7 @@ extern volatile unsigned int Vx;
 extern volatile unsigned int Vy;
 extern volatile unsigned int VxPrev;
 extern volatile unsigned int VyPrev;
+extern unsigned int ArriveToZeroAngle;
 
 // System
 extern void sysConfig(void);
