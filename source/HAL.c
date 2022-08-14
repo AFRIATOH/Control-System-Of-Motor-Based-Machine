@@ -94,8 +94,8 @@ __interrupt void USCI0RX_ISR(void){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    } else if(StateFlag == 1){
-        if(MessegeDept == 1){
+    } else if(StateFlag == 0){
+        if(MessegeDept == 0){
             state = UCA0RXBUF;
             MessegeDept = 2;
             PaintMode = ignore;
