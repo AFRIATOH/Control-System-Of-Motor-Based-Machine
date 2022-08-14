@@ -507,7 +507,7 @@ void read_script(void){
         WriteOnFlash = 0;
         ack = 1;
         IE2 &= ~UCA0RXIE;
-        UCA0CTL1 &= ~UCSWRST;                     // Initialize USCI state machine
+        UCA0CTL1 &= ~UCSWRST;
         IE2 |= UCA0TXIE;
         Delay10Ms(10);
    }
