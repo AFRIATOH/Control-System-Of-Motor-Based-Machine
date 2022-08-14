@@ -419,56 +419,97 @@ void move_to_angle(unsigned long angle){
 //****************************************************************** 
 //            move according to joystick
 //******************************************************************
-void MoveMotorToJoyStick(void){
-    if (Vx > 490){                                                     // Vx dir is right
-        if(Vy > 520){                                                 // Vy dir is up
-            a = Vx - 465;
-            b = Vy - 495;
-            c = a/b;                                                // Assign the value we will find the atan of
-            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 470){                                    // Vy dir is down
-            a = Vx - 465;
-            b = 495 - Vy;
-            c = a/b;                                            // Assign the value we will find the atan of
-            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;   // taylor series of arctan
-            alpha = 180 - alpha;
-        }
-        else{                                                // Vy is in the middle -> angle is 90
-            alpha = 90;
-        }
+// void MoveMotorToJoyStick(void){
+//     if (Vx > 490){                                                     // Vx dir is right
+//         if(Vy > 520){                                                 // Vy dir is up
+//             a = Vx - 465;
+//             b = Vy - 495;
+//             c = a/b;                                                // Assign the value we will find the atan of
+//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
+//         } else if (Vy < 470){                                    // Vy dir is down
+//             a = Vx - 465;
+//             b = 495 - Vy;
+//             c = a/b;                                            // Assign the value we will find the atan of
+//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;   // taylor series of arctan
+//             alpha = 180 - alpha;
+//         }
+//         else{                                                // Vy is in the middle -> angle is 90
+//             alpha = 90;
+//         }
 
-    } else if (Vx < 440){                                              // Vx dir is left
-        if(Vy > 520){                                                 // Vy dir is up
-            a = 465 - Vx;
-            b = Vy - 495;
-            c = a/b;                                                // Assign the value we will find the atan of
-            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-            alpha = 360 - alpha;
-        } else if (Vy < 470){                                    // Vy dir is down
-            a = 465 - Vx;
-            b = 495 - Vy;
-            c = a/b;                                           // Assign the value we will find the atan of
-            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;  // taylor series of arctan
-            alpha = 180 + alpha;
-        } else {                                             // Vy is in the middle -> angle is 270
+//     } else if (Vx < 440){                                              // Vx dir is left
+//         if(Vy > 520){                                                 // Vy dir is up
+//             a = 465 - Vx;
+//             b = Vy - 495;
+//             c = a/b;                                                // Assign the value we will find the atan of
+//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
+//             alpha = 360 - alpha;
+//         } else if (Vy < 470){                                    // Vy dir is down
+//             a = 465 - Vx;
+//             b = 495 - Vy;
+//             c = a/b;                                           // Assign the value we will find the atan of
+//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;  // taylor series of arctan
+//             alpha = 180 + alpha;
+//         } else {                                             // Vy is in the middle -> angle is 270
+//             alpha = 270;
+//         }
+//     }
+//     else{                                                 // Vx is in the middle
+//         if(Vy > 520){                                   // Vy dir is up -> angle is 0
+//             alpha = 0;
+//         } else if (Vy < 470){                          // Vy dir is down -> angle is 180
+//             alpha = 180;
+//         }
+//     }
+//     angle = (unsigned long)alpha;
+//     //angle = alpha;
+//     move_to_angle(angle*1000);
+//     VxPrev = Vx;
+//     VyPrev = Vx;
+// }
+
+//check if its working
+void MoveMotorToJoyStick(void){
+    if(Vx > 490){
+        a = Vx - 465;
+    } else if(Vx < 440){
+        a = 465 - Vx;
+    } else if((440 <= Vx) && (Vx <= 490)){
+        a = 0;
+    }
+    if(Vy > 520){
+        b = Vy - 495;
+    } else if(Vy < 470){
+        b = 495 - Vy;
+    } else if((470 <= Vy) && (Vy <= 520)){
+        b = 0;
+    }
+    if(a == 0){
+        if(Vy > 520){
+            alpha = 0;
+        } else{
+            alpha = 180;
+        }
+    } else if(b == 0){
+        if(Vx > 490){
+            alpha = 90;
+        } else{
             alpha = 270;
         }
-    }
-    else{                                                 // Vx is in the middle
-        if(Vy > 520){                                   // Vy dir is up -> angle is 0
-            alpha = 0;
-        } else if (Vy < 470){                          // Vy dir is down -> angle is 180
-            alpha = 180;
+    } else{
+        c = a/b;
+        if(Vx > 490){ 
+            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;
+        } else{
+            alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;
+            alpha = 180 + alpha;
         }
     }
     angle = (unsigned long)alpha;
-    //angle = alpha;
-    move_to_angle(angle*1000);
     VxPrev = Vx;
     VyPrev = Vx;
+    move_to_angle(angle*1000);
 }
-
-
 //******************************************************************
 //            script funcs
 //******************************************************************
