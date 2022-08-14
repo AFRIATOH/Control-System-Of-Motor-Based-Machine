@@ -14,6 +14,9 @@ volatile unsigned long StepSize = 88;
 volatile int StepCounter = 0;
 volatile int MotorDelay = 2;
 volatile unsigned int MessegeType;
+unsigned int InfoReq = 0;
+volatile char BufferArray[30];
+volatile unsigned int BufferLocation;
 
 Scripts script = {
     1,
@@ -102,6 +105,10 @@ __interrupt void USCI0RX_ISR(void){
     if(MessegeType == "!"){
         StateFlag = 1;
         MessegeDept = 1;
+    } else if(MessegeType == '@'){
+        InfoReq = 1;
+        SendInfo();
+        IE2 |= UCA0TXIE;
     } else if(StateFlag == 1){
         if(MessegeDept == 1){
             state = UCA0RXBUF;
@@ -197,7 +204,68 @@ __interrupt void Timer_A1(void){
     __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
 }
 
+//******************************************************************
+//            UART functions
+//******************************************************************
+void SendInfo(void){
+    BufferLocation = 0;
+    if(state == state2){
+        BufferArray[BufferLocation++]='!';
+        BufferLocation += 2;
+        AddToBuffer(Vx);
+        AddToBuffer(Vy);
+        int len = BufferLocation;
+        BufferArray[2]= (len%10) + '0'; //send char of num
+        BufferArray[1]= (len/10) + '0'; //send char of num
+    } else if(state == state3){
+        BufferArray[BufferLocation++]='@';
+        BufferLocation += 2;
+        AddToBuffer(StepCounter);
+        AddToBuffer(StepSize);
+        int len = BufferLocation;
+        BufferArray[2]= (len%10) + '0'; //send char of num
+        BufferArray[1]= (len/10) + '0'; //send char of num
+    }
+}
 
+void AddToBuffer(unsigned int num){
+    if(num < 10){
+        BufferArray[BufferLocation++] = (num%10) + '0'; //send char of num
+    } else if(num < 100){
+        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+        BufferLocation += 2;
+    } else if(num < 1000){
+        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+        BufferLocation += 3;    
+    } else if(num < 10000){
+        BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+        BufferLocation += 4;    
+    } else if(num < 100000){
+        BufferArray[BufferLocation+4] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+        num = num/10;
+        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+        BufferLocation += 5;    
+    }
+    BufferArray[BufferLocation++] = '-'
+}
 //******************************************************************
 //            smaple
 //******************************************************************
