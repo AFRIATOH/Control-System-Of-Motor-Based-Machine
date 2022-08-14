@@ -26,6 +26,8 @@ extern volatile unsigned long curr_angle;
 extern Scripts script;
 extern volatile unsigned int Vx;
 extern volatile unsigned int Vy;
+extern volatile unsigned int VxPrev;
+extern volatile unsigned int VyPrev;
 
 // System
 extern void sysConfig(void);

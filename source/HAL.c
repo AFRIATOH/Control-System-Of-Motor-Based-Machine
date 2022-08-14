@@ -6,6 +6,8 @@ int D = 50;
 unsigned int i,j;
 volatile unsigned int Vx=465;
 volatile unsigned int Vy=495;
+volatile unsigned int VxPrev=465;
+volatile unsigned int VyPrev=495;
 unsigned int Vin[2] = {465, 495};
 unsigned int a, b;
 double c;
@@ -460,8 +462,8 @@ void MoveMotorToJoyStick(void){
     angle = (unsigned long)alpha;
     //angle = alpha;
     move_to_angle(angle*1000);
-    Vx = 465;
-    Vy = 495;
+    VxPrev = Vx;
+    VyPrev = Vx;
 }
 
 
