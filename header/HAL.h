@@ -24,6 +24,8 @@ extern volatile unsigned int MessegeType;
 extern volatile int MotorDelay;
 extern volatile unsigned long curr_angle;
 extern Scripts script;
+extern volatile unsigned int Vx;
+extern volatile unsigned int Vy;
 
 // System
 extern void sysConfig(void);
@@ -33,7 +35,7 @@ extern void enterLPM(unsigned char);
 void _buttonDebounceDelay(int button);
 
 // Delays
-extern void DelayMs(unsigned int);
+extern void DelayMs(int);
 extern void DelayUs(unsigned int);
 extern void delay(unsigned int);
 extern void delay_x(unsigned int);

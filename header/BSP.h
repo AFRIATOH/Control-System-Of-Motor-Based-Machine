@@ -8,9 +8,6 @@
 #define Phi 3.1415926
 
 
-//sleep modes
-#define CPUOFF LPM0_bits + GIE
-
 
 //  Timer abstraction
 #define TIMER_DIR          P2DIR

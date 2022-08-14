@@ -1,5 +1,6 @@
 #include  "../header/API.h"    		// private library - API layer
 #include  "../header/HAL.h"     // private library - HAL layer
+//#include  "../source/HAL.c"
 
 
 
@@ -85,10 +86,10 @@ void calibration(void){
 //******************************************************************
 //state4
 //******************************************************************
-void script_mode(void){
-    RGB_clear;
-    Leds_clear;
-    read_script();
-}
+//void script_mode(void){
+//    RGB_clear;
+//    Leds_clear;
+//    read_script();
+//}
 
 
