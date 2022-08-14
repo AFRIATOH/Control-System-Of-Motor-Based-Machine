@@ -174,6 +174,7 @@ __interrupt void PORT1_ISR(void){
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void Timer_A0(void){
     TACCTL0 &= ~CCIE;                   // CCR0 interrupt disabled
+    TA0CTL = TACLR;
 	TACTL = MC_0;                       // stop clock
 	__bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
 }
