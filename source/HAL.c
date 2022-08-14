@@ -19,6 +19,8 @@ volatile unsigned int MessegeType;
 unsigned int InfoReq = 0;
 volatile char BufferArray[30];
 volatile unsigned int BufferLocation;
+volatile int SM_Step_Right = 0x08;       //1000-0000- h-4
+volatile int SM_Step_Left = 0x01;
 
 Scripts script = {
     1,
@@ -330,26 +332,46 @@ void backward(volatile long angle){
         angle -= StepSize;
     }
 }
+// void step_clockwise(void){
+//     MOTORPort = 0x01;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x08;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x04;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x02;
+//     DelayMs(MotorDelay);
+// }
+
+// void step_counterclockwise(void){
+//     MOTORPort = 0x08;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x01;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x02;
+//     DelayMs(MotorDelay);
+//     MOTORPort = 0x04;
+//     DelayMs(MotorDelay);
+// }
+
+// Full step
 void step_clockwise(void){
-    MOTORPort = 0x01;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x08;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x04;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x02;
-    DelayMs(MotorDelay);
+    SM_Step_Right >>= 1;
+    MOTORPort = SM_Step_Right;
+        if (SM_Step_Right == 0x00){
+            SM_Step_Right = 0x08;
+        }
+        DelayMs(MotorDelay);
 }
+//----------------------------------------------------------
 
 void step_counterclockwise(void){
-    MOTORPort = 0x08;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x01;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x02;
-    DelayMs(MotorDelay);
-    MOTORPort = 0x04;
-    DelayMs(MotorDelay);
+    SM_Step_Left <<= 1;
+        if (SM_Step_Left == 0x10){
+            SM_Step_Left = 0x01;
+        }
+        MOTORPort = SM_Step_Left;
+        DelayMs(MotorDelay);
 }
 
 void half_step_clockwise(void){
