@@ -57,7 +57,6 @@ void sysConfig(void)
 void DelayMs(int ms){
     TA0CCR0 = ms*130;
     TA0CCTL0 = CCIE;     // CCR0 interrupt enabled
-    //TACTL = MC_1;        // up mode
     TA0CTL = TASSEL_2 + ID_3 + MC_1 + TACLR; 
     __bis_SR_register(LPM0_bits + GIE);
 }
