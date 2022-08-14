@@ -21,8 +21,6 @@ volatile unsigned int MessegeType;
 unsigned int InfoReq = 0;
 volatile char BufferArray[30];
 volatile unsigned int BufferLocation;
-volatile int SM_Step_Right = 0x08;       //1000-0000- h-4
-volatile int SM_Step_Left = 0x01;
 
 Scripts script = {
     1,
@@ -34,6 +32,7 @@ Scripts script = {
 };
 
 unsigned int StateFlag = 0;
+unsigned int ArriveToZeroAngle = 0;
 unsigned int MessegeDept = 0;
 
 //******************************************************************
@@ -92,22 +91,17 @@ void DebounceDelay(int button){
 __interrupt void USCI0RX_ISR(void){
     MessegeType = UCA0RXBUF;
 
-    if(MessegeType == "!"){
-        StateFlag = 1;
-        MessegeDept = 1;
-    } else if(MessegeType == '@'){
+    if(MessegeType == '@'){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    } else if(StateFlag == 0)
-        {
-        if(MessegeDept == 0)
-        {
+    } else if(StateFlag == 0){
+        if(MessegeDept == 0){
             state = UCA0RXBUF -'0';
-            MessegeDept = 2;
             PaintMode = ignore;
             MoveDiraction = hold;
             if((state == state1)){
+                ArriveToZeroAngle = 0;
                 StateFlag = 1;
                 MessegeDept = 1;
                 __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
@@ -118,6 +112,14 @@ __interrupt void USCI0RX_ISR(void){
                 StateFlag = 0;
                 __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
             }  
+        }else if((MessegeDept == 1) && (state == state1) && (ArriveToZeroAngle == 0)){
+            PaintMode = UCA0RXBUF -'0';
+            if(MovingDiraction == stop){
+                MoveDiraction = hold;
+                ArriveToZeroAngle = 1;
+                StateFlag = 0;
+                MessegeDept = 0;
+            }
         }else if((MessegeDept == 2) && (state == state3)){
             MoveDiraction = UCA0RXBUF;
             if(MoveDiraction == stop){

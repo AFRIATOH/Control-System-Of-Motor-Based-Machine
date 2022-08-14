@@ -54,9 +54,12 @@ void sleep(void){
 void manual_control(void){
     RGB_clear;
     Leds_clear;
-    while(state == state1){
+    while(state == state1 && ArriveToZeroAngle == 0){
+        continuous_move();
+    }
+    while(state == state1 && ArriveToZeroAngle == 1){
         sample();
-        if ((Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470) && ((Vx-VxPrev > 30) || (Vy-VyPrev > 30) || (VxPrev-Vx > 30) || (VyPrev-Vy > 30)){
+        if ((Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470) && ((Vx-VxPrev > 30) || (Vy-VyPrev > 30) || (VxPrev-Vx > 30) || (VyPrev-Vy > 30))){
         MoveMotorToJoyStick();
         }
     }
