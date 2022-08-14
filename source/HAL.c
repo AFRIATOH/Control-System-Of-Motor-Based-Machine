@@ -57,7 +57,8 @@ void sysConfig(void)
 void DelayMs(int ms){
     TA0CCR0 = ms*130;
     TA0CCTL0 = CCIE;     // CCR0 interrupt enabled
-    TACTL = MC_1;        // up mode
+    //TACTL = MC_1;        // up mode
+    TA0CTL = TASSEL_2 + ID_3 + MC_1 + TACLR; 
     __bis_SR_register(LPM0_bits + GIE);
 }
 
@@ -265,28 +266,16 @@ void AddToBuffer(unsigned int num){
 //******************************************************************
 //            smaple
 //******************************************************************
- void sample(void){
+void sample(void){
 
-      ADC10CTL0 |= ADC10ON;                    // ADC ON
-      ADC10CTL0 &= ~ENC;                       // Disable ADC10
-      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
-      ADC10SA = (int)Vin;                      // Data buffer address
-      ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
-      __bis_SR_register(LPM0_bits + GIE);               // LPM0
-      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
- }
-
-//void sample(void){
-//     ADC10CTL0 |= ADC10ON;                    // ADC10 ON
-//
-//     ADC10CTL0 &= ~ENC;
-//     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 core is active
-//     ADC10SA = (int)Vin;                      // Data buffer start
-//     ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
-//     __bis_SR_register(LPM0_bits + GIE);      // LPM0, ADC10_ISR will force exit
-//
-//     ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
-// }
+    ADC10CTL0 |= ADC10ON;                    // ADC ON
+    ADC10CTL0 &= ~ENC;                       // Disable ADC10
+    while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
+    ADC10SA = (int)Vin;                      // Data buffer address
+    ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
+    __bis_SR_register(LPM0_bits + GIE);               // LPM0
+    ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
+}
 
 //******************************************************************
 //            move stepper 

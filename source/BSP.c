@@ -39,10 +39,6 @@ void ADCconfig(void){
    ADC10CTL1 = INCH_4 + CONSEQ_3+ ADC10SSEL_0;         //Repeat-sequence-of-channels, ADC clock, input channel A4
    ADC10DTC1 = BIT2;                                     //2 transfers in each block
    ADC10AE0 |= BIT3 + BIT4;                          //p1.3 p1.4 input
-//    ADC10CTL1 = INCH_4 + CONSEQ_3+ ADC10SSEL_0;             // A3, A4 Sequence-of-channels
-//    ADC10CTL0 = ADC10SHT_2 + MSC + ADC10ON + ADC10IE;       // SHT for sample and hold, MSC- multiple sample and conversion,interrupt enable
-//    ADC10DTC1 = BIT2;                                       // 2 conversions
-//    ADC10AE0 |= BIT3 + BIT4;                                       // P1.4, P1.3 ADC10 option select
 }   
 
 //------------------------------------------------------------------------------------- 
