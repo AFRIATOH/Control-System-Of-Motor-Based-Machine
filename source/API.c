@@ -52,6 +52,7 @@ void sleep(void){
 //state1
 //******************************************************************
 void manual_control(void){
+    __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
     RGB_clear;
     Leds_clear;
     while(state == state1 && ArriveToZeroAngle == 0){
@@ -89,10 +90,10 @@ void calibration(void){
 //******************************************************************
 //state4
 //******************************************************************
-//void script_mode(void){
-//    RGB_clear;
-//    Leds_clear;
-//    read_script();
-//}
+void script_mode(void){
+   RGB_clear;
+   Leds_clear;
+   read_script();
+}
 
 

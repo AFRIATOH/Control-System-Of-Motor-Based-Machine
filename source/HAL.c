@@ -21,6 +21,7 @@ volatile unsigned int MessegeType;
 unsigned int InfoReq = 0;
 volatile char BufferArray[30];
 volatile unsigned int BufferLocation;
+volatile char ScriptNum;
 
 Scripts script = {
     1,
@@ -95,42 +96,40 @@ __interrupt void USCI0RX_ISR(void){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    } else if(StateFlag == 0){
+    }else if(StateFlag == 0){
         if(MessegeDept == 0){
             state = UCA0RXBUF -'0';
             PaintMode = ignore;
-            MoveDiraction = hold;
+            MessegeDept = 1;
+            StateFlag = 1;
             if((state == state1)){
                 ArriveToZeroAngle = 0;
-                StateFlag = 1;
-                MessegeDept = 1;
-                __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
             }
             if(state == state2){
                 PaintMode = neutral;
-                MessegeDept = 0;
-                StateFlag = 0;
-                __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
+            }
+            if(state == state3){
+            MoveDiraction = hold;
             }
         }
      }else if((MessegeDept == 1) && (state == state1) && (ArriveToZeroAngle == 0)){
-            PaintMode = UCA0RXBUF -'0';
-            if(MoveDiraction == stop){
-                MoveDiraction = hold;
-                ArriveToZeroAngle = 1;
-                StateFlag = 0;
-                MessegeDept = 0;
-            }
-        }else if((MessegeDept == 2) && (state == state3)){
-            MoveDiraction = UCA0RXBUF;
-            if(MoveDiraction == stop){
-                MessegeDept = 0;
-                StateFlag = 0;
-            }
-            __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
-        }else if((MessegeDept == 2) && (state == state4)){
-            //script mode
+        MoveDiraction = UCA0RXBUF -'0';
+        if(MoveDiraction == stop){
+            ArriveToZeroAngle = 1;
+            StateFlag = 0;
+            MessegeDept = 0;
         }
+    }else if((MessegeDept == 1) && (state == state3)){
+        MoveDiraction = UCA0RXBUF -'0';
+        if(MoveDiraction == stop){
+            MessegeDept = 0;
+            StateFlag = 0;
+        }
+    }else if((MessegeDept == 1) && (state == state4)){
+
+
+    }
+    __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
 }
 
 //*********************************************************************
@@ -336,18 +335,18 @@ void backward(volatile long angle){
         angle -= StepSize;
     }
 }
- void step_clockwise(void){
-     MOTORPort = 0x01;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x08;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x04;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x02;
-     DelayMs(MotorDelay);
- }
-
  void step_counterclockwise(void){
+     MOTORPort = 0x01;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x08;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x04;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x02;
+     DelayMs(MotorDelay);
+ }
+
+ void step_clockwise(void){
      MOTORPort = 0x08;
      DelayMs(MotorDelay);
      MOTORPort = 0x01;
@@ -357,26 +356,6 @@ void backward(volatile long angle){
      MOTORPort = 0x04;
      DelayMs(MotorDelay);
  }
-
-//// Full step
-//void step_clockwise(void){
-//    SM_Step_Right >>= 1;
-//    MOTORPort = SM_Step_Right;
-//        if (SM_Step_Right == 0x00){
-//            SM_Step_Right = 0x08;
-//        }
-//        DelayMs(MotorDelay);
-//}
-////----------------------------------------------------------
-//
-//void step_counterclockwise(void){
-//    SM_Step_Left <<= 1;
-//        if (SM_Step_Left == 0x10){
-//            SM_Step_Left = 0x01;
-//        }
-//        MOTORPort = SM_Step_Left;
-//        DelayMs(MotorDelay);
-//}
 
 void half_step_clockwise(void){
     MOTORPort = 0x08;
@@ -473,11 +452,11 @@ void MoveMotorToJoyStick(void){
 //            script funcs
 //******************************************************************
 
-//void read_script(void){
-//    __bis_SR_register(LPM0_bits + GIE);               // LPM0
-//    script.num = ScriptNum;
-//    for
-//}
+void read_script(void){
+   __bis_SR_register(LPM0_bits + GIE);               // LPM0
+   script.num = ScriptNum;
+   for
+}
 
 //1
 void bling_RGB(int X){
