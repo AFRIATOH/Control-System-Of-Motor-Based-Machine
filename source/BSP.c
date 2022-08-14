@@ -37,8 +37,8 @@ void UARTconfig(void){
 void ADCconfig(void){
   ADC10CTL0 = MSC + ADC10SHT_2 + ADC10ON + ADC10IE;   //Multiple sample and conversion,  sample-and-hold, ADC on, interrupt enable
   ADC10CTL1 = INCH_4 + CONSEQ_3+ ADC10SSEL_0;         //Repeat-sequence-of-channels, ADC clock, input channel A4
-  ADC10DTC1 = BIT2;                                   //2 transfers in each block
-  ADC10AE0 |= BIT3 + BIT4;                            //p1.3 p1.4 input
+  ADC10DTC1 = 0x02;                                   //2 transfers in each block
+  ADC10AE0 |= 0x18;                            //p1.3 p1.4 input
 }   
 
 //------------------------------------------------------------------------------------- 

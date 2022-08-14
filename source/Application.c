@@ -14,7 +14,7 @@ void main(void){
   UCA0CTL1 &= ~UCSWRST;       // Initialize USCI state machine
   IE2 &= ~UCA0TXIE;          // Disable TX interrupt
   IE2 |= UCA0RXIE;          // Enable RX interrupt
-  state = state0;          // start in idle state on RESET
+  state = state1;          // start in idle state on RESET
   lpm_mode = mode0;       // start in idle state on RESET
 
   while(1)

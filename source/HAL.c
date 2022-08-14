@@ -87,6 +87,7 @@ void DebounceDelay(int button){
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void){
     MessegeType = UCA0RXBUF;
+
     if(MessegeType == "!"){
         StateFlag = 1;
         MessegeDept = 1;
@@ -94,16 +95,18 @@ __interrupt void USCI0RX_ISR(void){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    } else if(StateFlag == 0){
-        if(MessegeDept == 0){
-            state = UCA0RXBUF;
+    } else if(StateFlag == 0)
+        {
+        if(MessegeDept == 0)
+        {
+            state = UCA0RXBUF -'0';
             MessegeDept = 2;
             PaintMode = ignore;
             MoveDiraction = hold;
             if((state == state1)){
-                StateFlag = 0;
-                MessegeDept = 0;
-                __bis_SR_register(LPM0_bits + GIE);
+                StateFlag = 1;
+                MessegeDept = 1;
+                //__bis_SR_register_on_exit(LPM0_bits + GIE);
             }
             if(state == state2){
                 PaintMode = neutral;
@@ -205,7 +208,6 @@ void SendInfo(void){
     if(state == state2){
         BufferArray[BufferLocation++]='!';
         BufferLocation += 2;
-        AddToBuffer(PainterMode);
         AddToBuffer(Vx);
         AddToBuffer(Vy);
         int len = BufferLocation;
