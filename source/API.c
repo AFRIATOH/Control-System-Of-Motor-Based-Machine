@@ -45,7 +45,7 @@ int str_to_int( char volatile *str)
 void sleep(void){
     RGB_clear;
     Leds_clear;
-    __bis_SR_register(CPUOFF); 
+    __bis_SR_register(LPM0_bits + GIE);
 }
 
 //******************************************************************
@@ -56,7 +56,7 @@ void manual_control(void){
     Leds_clear;
     while(state == state1){
         sample();
-        while (Vx>=468 || Vx<=462 || Vy>=498 || Vy<=492){
+        while (Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470){
         MoveMotorToJoyStick();
         }
     }

@@ -12,7 +12,7 @@ double c;
 double alpha;
 volatile unsigned long angle;
 volatile unsigned long curr_angle = 0;
-volatile unsigned long StepSize = 88;
+volatile unsigned long StepSize = 700;
 volatile int StepCounter = 0;
 volatile int MotorDelay = 2;
 volatile unsigned int MessegeType;
@@ -332,47 +332,47 @@ void backward(volatile long angle){
         angle -= StepSize;
     }
 }
-// void step_clockwise(void){
-//     MOTORPort = 0x01;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x08;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x04;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x02;
-//     DelayMs(MotorDelay);
-// }
+ void step_clockwise(void){
+     MOTORPort = 0x01;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x08;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x04;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x02;
+     DelayMs(MotorDelay);
+ }
 
-// void step_counterclockwise(void){
-//     MOTORPort = 0x08;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x01;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x02;
-//     DelayMs(MotorDelay);
-//     MOTORPort = 0x04;
-//     DelayMs(MotorDelay);
-// }
+ void step_counterclockwise(void){
+     MOTORPort = 0x08;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x01;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x02;
+     DelayMs(MotorDelay);
+     MOTORPort = 0x04;
+     DelayMs(MotorDelay);
+ }
 
-// Full step
-void step_clockwise(void){
-    SM_Step_Right >>= 1;
-    MOTORPort = SM_Step_Right;
-        if (SM_Step_Right == 0x00){
-            SM_Step_Right = 0x08;
-        }
-        DelayMs(MotorDelay);
-}
-//----------------------------------------------------------
-
-void step_counterclockwise(void){
-    SM_Step_Left <<= 1;
-        if (SM_Step_Left == 0x10){
-            SM_Step_Left = 0x01;
-        }
-        MOTORPort = SM_Step_Left;
-        DelayMs(MotorDelay);
-}
+//// Full step
+//void step_clockwise(void){
+//    SM_Step_Right >>= 1;
+//    MOTORPort = SM_Step_Right;
+//        if (SM_Step_Right == 0x00){
+//            SM_Step_Right = 0x08;
+//        }
+//        DelayMs(MotorDelay);
+//}
+////----------------------------------------------------------
+//
+//void step_counterclockwise(void){
+//    SM_Step_Left <<= 1;
+//        if (SM_Step_Left == 0x10){
+//            SM_Step_Left = 0x01;
+//        }
+//        MOTORPort = SM_Step_Left;
+//        DelayMs(MotorDelay);
+//}
 
 void half_step_clockwise(void){
     MOTORPort = 0x08;
@@ -416,13 +416,13 @@ void move_to_angle(unsigned long angle){
 //            move according to joystick
 //******************************************************************
 void MoveMotorToJoyStick(void){
-    if (Vx > 468){                                                     // Vx dir is right
-        if(Vy > 498){                                                 // Vy dir is up
+    if (Vx > 490){                                                     // Vx dir is right
+        if(Vy > 520){                                                 // Vy dir is up
             a = Vx - 465;
             b = Vy - 495;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-        } else if (Vy < 492){                                    // Vy dir is down
+        } else if (Vy < 470){                                    // Vy dir is down
             a = Vx - 465;
             b = 495 - Vy;
             c = a/b;                                            // Assign the value we will find the atan of
@@ -433,14 +433,14 @@ void MoveMotorToJoyStick(void){
             alpha = 90;
         }
 
-    } else if (Vx < 462){                                              // Vx dir is left
-        if(Vy > 498){                                                 // Vy dir is up
+    } else if (Vx < 440){                                              // Vx dir is left
+        if(Vy > 520){                                                 // Vy dir is up
             a = 465 - Vx;
             b = Vy - 495;
             c = a/b;                                                // Assign the value we will find the atan of
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
             alpha = 360 - alpha;
-        } else if (Vy < 492){                                    // Vy dir is down
+        } else if (Vy < 470){                                    // Vy dir is down
             a = 465 - Vx;
             b = 495 - Vy;
             c = a/b;                                           // Assign the value we will find the atan of
@@ -451,9 +451,9 @@ void MoveMotorToJoyStick(void){
         }
     }
     else{                                                 // Vx is in the middle
-        if(Vy > 498){                                   // Vy dir is up -> angle is 0
+        if(Vy > 520){                                   // Vy dir is up -> angle is 0
             alpha = 0;
-        } else if (Vy < 492){                          // Vy dir is down -> angle is 180
+        } else if (Vy < 470){                          // Vy dir is down -> angle is 180
             alpha = 180;
         }
     }
