@@ -35,6 +35,7 @@ extern volatile int WriteOnFlash;
 extern int ScriptIndex;
 extern volatile char ScriptRx[10];
 extern int ScriptReadIndex;
+extern int ack;
 extern int WriteOnFlashFlag;
 extern int CountScriptSize;
 

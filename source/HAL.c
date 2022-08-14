@@ -29,6 +29,7 @@ volatile char ScriptRx[10];
 int ScriptReadIndex;
 int WriteOnFlashFlag;
 int CountScriptSize;
+int ack = 0;
 
 Scripts scriptt = {
     1,
@@ -490,10 +491,20 @@ void read_script(void){
         for(k=0; k<CountScriptSize; k++){
             __bis_SR_register(LPM0_bits + GIE);
         }
-        //write script to flash
+        // FCTL1 = ERASE + FWKEY;
+        // FCTL3 = FWKEY;
+        // stringg.scripte_loc[stringg.num-1] = 0;
+        // FCTL1 = WRT + FWKEY;
+        // for(k=0; k<CountScriptSize; k++){
+        //
+        // }
         scriptt.Written[scriptt.num-1] = 1;
         WriteOnFlash = 0;
-        //send ack
+        ack = 1;
+        IE2 &= ~UCA0RXIE;
+        UCA0CTL1 &= ~UCSWRST;                     // Initialize USCI state machine
+        IE2 |= UCA0TXIE;
+        Delay10Ms(10);
    }
 
 }
