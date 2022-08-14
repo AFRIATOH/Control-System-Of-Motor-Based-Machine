@@ -144,8 +144,16 @@ __interrupt void USCI0RX_ISR(void){
 //*********************************************************************
 
 #pragma vector=USCIAB0TX_VECTOR
-__interrupt void USCI0TX_ISR(void){           		
-
+__interrupt void USCI0TX_ISR(void){
+    int TxLocation = 0;
+    if(InfoReq == 1){
+        UCA0TXBUF = BufferArray[TxLocation++];
+        if(TxLocation == BufferLocation){
+            TxLocation = 0;
+            InfoReq = 0;
+            IE2 &= ~UCA0TXIE;
+        }
+    }
 }
 
 //*********************************************************************
