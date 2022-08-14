@@ -99,48 +99,52 @@ __interrupt void USCI0RX_ISR(void){
     if(MessegeType == '!'){
         StateFlag = 1;
         MessegeDept = 1;
-    }else if(MessegeType == '@'){
+    }
+    else if(MessegeType == '@'){
         InfoReq = 1;
         SendInfo();
         IE2 |= UCA0TXIE;
-    }else if(StateFlag == 1){
-        if(MessegeDept == 1){
+    }
+    else if(StateFlag == 1 && MessegeDept == 1){
             state = UCA0RXBUF -'0';
             PaintMode = ignore;
             MessegeDept = 2;
             if((state == state1)){
                 ArriveToZeroAngle = 0;
             }
-            if(state == state2){
+            else if(state == state2){
                 PaintMode = neutral;
             }
-            if(state == state3){
+            else if(state == state3){
                 MoveDiraction = hold;
             }
-        }
-     }else if((MessegeDept == 2) && (state == state1) && (ArriveToZeroAngle == 0)){
+    }
+    else if((MessegeDept == 2) && (state == state1) && (ArriveToZeroAngle == 0)){
         MoveDiraction = UCA0RXBUF -'0';
         if(MoveDiraction == stop){
             ArriveToZeroAngle = 1;
             StateFlag = 0;
             MessegeDept = 1;
         }
-    }else if((MessegeDept == 2) && (state == state3)){
+    }
+    else if((MessegeDept == 2) && (state == state3)){
         MoveDiraction = UCA0RXBUF -'0';
         if(MoveDiraction == stop){
             MessegeDept = 0;
             StateFlag = 0;
         }
-    }else if((MessegeDept == 2) && (state == state4)){
+    }
+    else if((MessegeDept == 2) && (state == state4)){
         MessegeDept = 0;
         if(WriteOnFlash == 0){
             if(ScriptNumFlag == 1){
                 ScriptNumFlag = 0;
                 ScriptNum = UCA0RXBUF - '0';
-            } else{
-                ScriptRx[ScriptIndex++] = UCA0RXBUF;
             }
-        } else if(WriteOnFlashFlag == 1){
+            else
+                ScriptRx[ScriptIndex++] = UCA0RXBUF;
+        }
+        else if(WriteOnFlashFlag == 1){
 
         }
 
@@ -319,6 +323,7 @@ void continuous_move(void){
             StepCounter--;
             angle_decrease();
         }
+        __bis_SR_register(LPM0_bits + GIE);
     }
 }
 
