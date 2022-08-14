@@ -59,4 +59,11 @@ extern void move_to_angle(unsigned long);
 // script funcs
 extern void scan_step(unsigned long, unsigned long);
 
+//service funcs
+__interrupt void ADC10_ISR(void);
+__interrupt void Timer_A0(void);
+__interrupt void Timer_A1(void);
+__interrupt void USCI0RX_ISR(void);
+__interrupt void USCI0TX_ISR(void);
+__interrupt void PORT1_ISR(void);
 #endif

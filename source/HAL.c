@@ -7,6 +7,7 @@ unsigned int i,j;
 volatile unsigned int Vx=1650;
 volatile unsigned int Vy=1650;
 unsigned int Vin[2] = {1650, 1650};
+unsigned int res[2] = {460, 460};
 unsigned int a, b;
 double c;
 double alpha;
@@ -192,14 +193,20 @@ __interrupt void Timer_A1(void){
 //            ADC Interrupt Service Rotine 
 //*********************************************************************
 
+// #pragma vector=ADC10_VECTOR
+//     __interrupt void ADC10_ISR(void){
+// 	ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
+//     Vx = Vin[0];
+//     Vy = Vin[1];
+//     __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear LPM0_bits + GIE bit from 0(SR)
+// }
 #pragma vector=ADC10_VECTOR
-    __interrupt void ADC10_ISR(void){
-	ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
-    Vx = Vin[0];
-    Vy = Vin[1];
-    __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear LPM0_bits + GIE bit from 0(SR)
+ __interrupt void ADC10_ISR(void){
+    ADC10CTL0 &= ~ADC10IFG;                          // clear interrupt flag
+    Vx = res[0];
+    Vy = res[1];
+  __bic_SR_register_on_exit(LPM0_bits + GIE);        // Clear CPUOFF bit from 0(SR)
 }
-
 //******************************************************************
 //            UART functions
 //******************************************************************
@@ -265,16 +272,28 @@ void AddToBuffer(unsigned int num){
 //******************************************************************
 //            smaple
 //******************************************************************
-void sample(void){
+// void sample(void){
 
-     ADC10CTL0 |= ADC10ON;                    // ADC ON
-     ADC10CTL0 &= ~ENC;                       // Disable ADC10
-     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
-     ADC10SA = (int)Vin;                      // Data buffer address
-     ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
-     __bis_SR_register(LPM0_bits + GIE);               // LPM0
+//      ADC10CTL0 |= ADC10ON;                    // ADC ON
+//      ADC10CTL0 &= ~ENC;                       // Disable ADC10
+//      while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 active
+//      ADC10SA = (int)Vin;                      // Data buffer address
+//      ADC10CTL0 |= ENC + ADC10SC;              // Enable ADC10
+//      __bis_SR_register(LPM0_bits + GIE);               // LPM0
+//      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
+// }
+
+void sample(void){
+     ADC10CTL0 |= ADC10ON;                    // ADC10 ON
+
+     ADC10CTL0 &= ~ENC;
+     while (ADC10CTL1 & ADC10BUSY);           // Wait if ADC10 core is active
+     ADC10SA = (int)res;                      // Data buffer start
+     ADC10CTL0 |= ENC + ADC10SC;              // Sampling and conversion start
+     __bis_SR_register(LPM0_bits + GIE);      // LPM0, ADC10_ISR will force exit
+
      ADC10CTL0 &= ~ADC10ON;                   // ADC10 OFF
-}
+ }
 
 //******************************************************************
 //            move stepper 
