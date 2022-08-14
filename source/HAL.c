@@ -108,13 +108,13 @@ __interrupt void USCI0RX_ISR(void){
             if((state == state1)){
                 StateFlag = 1;
                 MessegeDept = 1;
-                //__bis_SR_register_on_exit(LPM0_bits + GIE);
+                __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
             }
             if(state == state2){
                 PaintMode = neutral;
                 MessegeDept = 0;
                 StateFlag = 0;
-                __bis_SR_register(LPM0_bits + GIE);
+                __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
             }  
         }else if((MessegeDept == 2) && (state == state3)){
             MoveDiraction = UCA0RXBUF;
@@ -122,7 +122,7 @@ __interrupt void USCI0RX_ISR(void){
                 MessegeDept = 0;
                 StateFlag = 0;
             }
-            __bis_SR_register(LPM0_bits + GIE);
+            __bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
         }else if((MessegeDept == 2) && (state == state4)){
             //script mode
         }

@@ -45,7 +45,7 @@ int str_to_int( char volatile *str)
 void sleep(void){
     RGB_clear;
     Leds_clear;
-    __bis_SR_register(LPM0_bits + GIE);
+    __bis_SR_register(LPM0_bits + GIE);   // Enter LPM0
 }
 
 //******************************************************************
