@@ -68,11 +68,7 @@ void DelayMs(int ms){
 void Delay10Ms(int ms10){
     TA0CCR0 = ms10*1300;
     TA0CCTL0 = CCIE;     // CCR0 interrupt enabled
-    TACTL = MC_1;        // up mode
-    //if needed
-    //TA1CCR0 = ms10*1300;
-    //TA1CCTL0 = CCIE;     // CCR1 interrupt enabled
-    //TA1CTL = MC_1;        // up mode
+    TA0CTL = TASSEL_2 + ID_3 + MC_1 + TACLR;
     __bis_SR_register(LPM0_bits + GIE);
 }
 
