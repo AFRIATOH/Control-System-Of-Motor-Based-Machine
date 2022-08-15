@@ -321,6 +321,7 @@ void continuous_move(void){
             step_clockwise();
             StepCounter++;
             angle_increase();
+            angle_decrease();
         }
         while (MoveDiraction == counterclockwise){ // moving counterclockwise until diraction changes
             step_counterclockwise();
