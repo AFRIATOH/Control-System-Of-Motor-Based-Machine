@@ -512,13 +512,13 @@ void read_script(void){
         }
         FCTL1 = ERASE + FWKEY;
         FCTL3 = FWKEY;
-        int NumScript = stringg.num-1;
-        stringg.scripte_loc[NumScript] = 0;
+        int NumScript = scriptt.num-1;
+        scriptt.scripte_loc[NumScript] = 0;
         FCTL1 = WRT + FWKEY;
         for(k=0; k<CountScriptSize; k++){
-            stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
+            scriptt.scripte_loc[NumScript++] = WriteOnFlash[k];
         }
-        while(!((FCTL3 & 0x03) = 0x03));
+        while(!((FCTL3 & 0x03) == 0x03));
         FCTL1 = FWKEY;
         FCTL3 = LOCK + FWKEY;
         scriptt.Written[scriptt.num-1] = 1;
