@@ -270,6 +270,7 @@ void SendInfo(void){
         AddStepToBuffer(StepCounter);
     }
     InfoReq = 1;
+    UCA0CTL1 &= ~UCSWRST;
     IE2 |= UCA0TXIE;
 }
 
