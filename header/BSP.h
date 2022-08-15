@@ -8,18 +8,6 @@
 #define Phi 3.1415926
 
 
-
-//  Timer abstraction
-#define TIMER_DIR          P2DIR
-#define TIMER_SEL          P2SEL
-#define TIMER_IE           P2IE
-#define TIMER_IFG          P2IFG
-#define ClockC             TA0CTL //control reg of timer A1
-#define CaptureC           TA0CCTL0 //Capture/Compare Control Register of timer A1
-#define TimerFlag          TA0CCTL1
-#define TimerFla2          TA0CCTL2
-#define COUNTERclk         TA0CCR0 //Capture/Compare Register
-
 //MOTOR - Port 2
 #define MOTORPort           P2OUT
 #define MOTORPortSel        P2SEL
@@ -44,17 +32,14 @@
 #define  LEDPortDir     P2DIR
 #define  LEDPortOUT     P2OUT
 
-#define Leds_clear  LEDPortOUT &= ~(BIT4 + BIT5 + BIT6 + BIT7);
+#define Leds_clear  LEDPortOUT &= ~(BIT4 + BIT5 + BIT6 + BIT7);     //clear LED
 
 extern void GPIOconfig(void);
 extern void TIMERconfig(void);
 extern void ADCconfig(void);
 extern void RGBconfig(void);
 extern void UARTconfig(void);
-extern void DelayyUs(unsigned int cnt);
-extern void DelayyMs(unsigned int cnt);
 
-extern unsigned int X_delay;
 
 
 #endif

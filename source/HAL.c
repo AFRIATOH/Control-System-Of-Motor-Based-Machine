@@ -14,6 +14,8 @@ unsigned int Vin[2] = {465, 495};
 unsigned int a, b;
 double c;
 double alpha;
+int Op6 = 0;
+int Op7 = 0;
 volatile unsigned long angle;
 volatile unsigned long curr_angle = 0;
 volatile long StepSize = 666;
@@ -34,6 +36,9 @@ int CountScriptLines;
 int ack = 0;
 int WriteOnFlashFlag = 0;
 int TxLocation = 0;
+unsigned int StateFlag = 1;
+unsigned int ArriveToZeroAngle = 0;
+unsigned int MessegeDept = 1;
 
 Scripts scriptt = {
     1,
@@ -44,9 +49,6 @@ Scripts scriptt = {
     {(char*)0xF800, (char*)0xFA00, (char*)0xFC00}
 };
 
-unsigned int StateFlag = 1;
-unsigned int ArriveToZeroAngle = 0;
-unsigned int MessegeDept = 1;
 
 //******************************************************************
 //          System Configuration 
@@ -105,11 +107,6 @@ __interrupt void USCI0RX_ISR(void){
         MessegeDept = 1;
         state = state0;
     }
-//    else if(MessegeType == '@'){
-//        InfoReq = 1;
-//        SendInfo();
-//        IE2 |= UCA0TXIE;
-//    }
     else if(StateFlag == 1 && MessegeDept == 1){
             state = UCA0RXBUF -'0';
             PaintMode = ignore;
@@ -212,17 +209,6 @@ __interrupt void Timer_A0(void){
 }
 
 //*********************************************************************
-//            Timer A1 Interrupt Service Rotine 
-//*********************************************************************
-
-#pragma vector=TIMER0_A1_VECTOR
-__interrupt void Timer_A1(void){
-    TA1CCTL0 &= ~CCIE;                   // CCR0 interrupt disabled
-	TA1CTL = MC_0;                       // stop clock
-	__bic_SR_register_on_exit(LPM0_bits + GIE);  // Exit LPM0 on return to main
-}
-
-//*********************************************************************
 //            ADC Interrupt Service Rotine 
 //*********************************************************************
 
@@ -260,7 +246,7 @@ __interrupt void Timer_A1(void){
 //    IE2 |= UCA0TXIE;
 //}
 
-void SendInfo(void){
+void SendInfo(void){     //send using TX
     BufferLocation = 0;
     if(state == state2){
         BufferArray[BufferLocation++] = PaintMode + '0'; //send char of num
@@ -268,6 +254,12 @@ void SendInfo(void){
         AddVToBuffer(Vy);
     } else if(state == state3){
         AddStepToBuffer(StepCounter);
+    } else if((state == state4) && (Op6)){
+        AddAngleToBuffer(curr_angle/1000);
+        Op6 = 0;
+    } else if((state == state4) && (Op7)){
+        AddAngleToBuffer(curr_angle/1000);
+        Op7 = 0;
     }
     InfoReq = 1;
     UCA0CTL1 &= ~UCSWRST;
@@ -301,46 +293,55 @@ void AddVToBuffer(unsigned int volt){
     BufferLocation = BufferLocation + 4;
 }
 
-void AddToBuffer(unsigned int num){
-    if(num < 10){
-        BufferArray[BufferLocation++] = (num%10) + '0'; //send char of num
-    } else if(num < 100){
-        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
-        BufferLocation += 2;
-    } else if(num < 1000){
-        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
-        BufferLocation += 3;    
-    } else if(num < 10000){
-        BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
-        BufferLocation += 4;    
-    } else if(num < 100000){
-        BufferArray[BufferLocation+4] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
-        num = num/10;
-        BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
-        BufferLocation += 5;    
-    }
-    BufferArray[BufferLocation++] = '-';
+void AddAngleToBuffer(volatile unsigned long ang){
+    BufferArray[BufferLocation+2] = (ang%10) + '0'; //send char of num
+    ang = ang/10;
+    BufferArray[BufferLocation+1] = (ang%10) + '0'; //send char of num
+    ang = ang/10;
+    BufferArray[BufferLocation] = (ang%10) + '0'; //send char of num
+    BufferLocation = BufferLocation + 3;
 }
+
+// void AddToBuffer(unsigned int num){
+//     if(num < 10){
+//         BufferArray[BufferLocation++] = (num%10) + '0'; //send char of num
+//     } else if(num < 100){
+//         BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+//         BufferLocation += 2;
+//     } else if(num < 1000){
+//         BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+//         BufferLocation += 3;    
+//     } else if(num < 10000){
+//         BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+//         BufferLocation += 4;    
+//     } else if(num < 100000){
+//         BufferArray[BufferLocation+4] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+3] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+2] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation+1] = (num%10) + '0'; //send char of num
+//         num = num/10;
+//         BufferArray[BufferLocation] = (num%10) + '0'; //send char of num
+//         BufferLocation += 5;    
+//     }
+//     BufferArray[BufferLocation++] = '-';
+// }
 //******************************************************************
-// Sample
+//            Sample
 //******************************************************************
 void sample(void){
 
@@ -411,27 +412,27 @@ void backward(volatile long angleB){
         angleB -= StepSize;
     }
 }
- void step_counterclockwise(void){
-     MOTORPort = 0x01;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x08;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x04;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x02;
-     DelayMs(MotorDelay);
- }
+void step_counterclockwise(void){
+    MOTORPort = 0x01;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x08;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x04;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x02;
+    DelayMs(MotorDelay);
+}
 
- void step_clockwise(void){
-     MOTORPort = 0x08;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x01;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x02;
-     DelayMs(MotorDelay);
-     MOTORPort = 0x04;
-     DelayMs(MotorDelay);
- }
+void step_clockwise(void){
+    MOTORPort = 0x08;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x01;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x02;
+    DelayMs(MotorDelay);
+    MOTORPort = 0x04;
+    DelayMs(MotorDelay);
+}
 
 void half_step_clockwise(void){
     MOTORPort = 0x08;
@@ -536,49 +537,8 @@ void CheckDiff(void){
 //            script funcs
 //******************************************************************
 
-void read_script(void){
-   __bis_SR_register(LPM0_bits + GIE);               // LPM0
-   scriptt.num = ScriptNum;
-   int NumScriptR = scriptt.num-1;
-   ScriptIndex = 0;
-   int k = 0;
-   while(k<2){
-        __bis_SR_register(LPM0_bits + GIE);
-        if(ScriptRx[ScriptIndex-1] == '-'){
-            k++;
-        }
-   }
-   ScriptNumFlag = 1;
-   ScriptIndex = 0;
-   if(scriptt.Written[NumScriptR] == 0){
-        scriptt.size[NumScriptR] = str_to_int_ScriptRx(ScriptRx);
-        ScriptIndex++;
-        scriptt.line[NumScriptR] = str_to_int_ScriptRx(ScriptRx);
-        CountScriptSize = scriptt.size[NumScriptR];
-        ScriptReadIndex = 0;
-        WriteOnFlashFlag = 1;
-        for(k=0; k<CountScriptSize; k++){
-            __bis_SR_register(LPM0_bits + GIE);
-        }
-        FCTL1 = ERASE + FWKEY;
-        FCTL3 = FWKEY;
-        scriptt.scripte_loc[NumScriptR] = 0;
-        FCTL1 = WRT + FWKEY;
-        for(k=0; k<CountScriptSize; k++){
-            scriptt.scripte_loc[NumScriptR++] = WriteOnFlash[k];
-        }
-        while(!((FCTL3 & 0x03) == 0x03));
-        FCTL1 = FWKEY;
-        FCTL3 = LOCK + FWKEY;
-        scriptt.Written[scriptt.num-1] = 1;
-        WriteOnFlashFlag = 0;
-        ack = 1;
-        IE2 &= ~UCA0RXIE;
-        UCA0CTL1 &= ~UCSWRST;
-        IE2 |= UCA0TXIE;
-        Delay10Ms(10);
-   }
-}
+// void read_script(void){
+// }
 
 // void execute_script(void){
 //     ack = 0;
@@ -660,16 +620,18 @@ void clear_all(int X){
 
 //6
 void stepper_deg(unsigned long angle){
-    move_to_angle(angle);
+    move_to_angle(angle*1000);
+    Op6 = 1;
+    SendInfo();
 }
 
 //7
-void stepper_scan(unsigned long l, unsigned long r){
+void scan_step(unsigned long l, unsigned long r){
 
     // moving to Left angle
     move_to_angle(l*1000);
-
-    // Tell PC that motor arrived to Left angle
+    Op7 = 1;
+    SendInfo(); // Tell PC that motor arrived to Left angle
 
     DelayMs(1000);
 
@@ -680,7 +642,8 @@ void stepper_scan(unsigned long l, unsigned long r){
         forward((360+r-l)*1000);
     }
 
-    // Tell PC that motor arrived to Left angle
+    Op7 = 1;
+    SendInfo(); // Tell PC that motor arrived to Left angle
 
 }
 

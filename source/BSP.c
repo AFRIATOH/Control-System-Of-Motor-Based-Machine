@@ -21,11 +21,11 @@ void GPIOconfig(void){
 void UARTconfig(void){
 //   P2DIR = 0xFF;                //All P2.x outputs
 //   P2OUT = 0;                   //All P2.x reset
-  P1SEL |= BIT1 + BIT2 ;          //P1.1 = RXD, P1.2=TXD
-  P1SEL2 |= BIT1 + BIT2 ;         //P1.1 = RXD, P1.2=TXD
-  P1OUT &= ~(BIT1 + BIT2);        //reset P1.1 P1.2
+  P1SEL |= BIT1 + BIT2 ;
+  P1SEL2 |= BIT1 + BIT2 ;
+  P1OUT &= ~(BIT1 + BIT2);
   
-  UCA0CTL1 |= UCSSEL_2;            //CLK = SMCLK
+  UCA0CTL1 |= UCSSEL_2;
   UCA0BR0 = 104;
   UCA0BR1 = 0x00;
   UCA0MCTL = UCBRS0;
@@ -85,19 +85,3 @@ void TIMERconfig(void){
   TA0CTL = TASSEL_2 + ID_3 + MC_1 + TACLR;     // SMCLK/8 = 131072[Hz], upmode 
   TA1CTL = TASSEL_2 + ID_3 + MC_1 + TACLR;     // SMCLK/8 = 131072[Hz], upmode
 }
-
-//******************************************************************
-// Delay usec functions
-//******************************************************************
-void DelayyUs(unsigned int cnt){
-	unsigned char i;
-  for(i=cnt ; i>0 ; i--) asm(" nop"); // tha command asm("nop") takes raphly 1usec
-}
-//******************************************************************
-// Delay msec functions
-//******************************************************************
-void DelayyMs(unsigned int cnt){
-	unsigned char i;
-  for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
-}
-//******************************************************************
