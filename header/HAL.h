@@ -40,9 +40,12 @@ extern int ack;
 extern int CountScriptSize;
 extern volatile unsigned int DiffX;
 extern volatile unsigned int DiffY;
+extern int WriteOnFlashFlag;
+extern volatile long StepSize;
 // System
 extern void sysConfig(void);
 extern void enterLPM(unsigned char);
+
 
 // Interrupts
 void _buttonDebounceDelay(int button);

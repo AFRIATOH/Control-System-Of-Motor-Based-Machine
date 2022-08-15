@@ -16,7 +16,7 @@ double c;
 double alpha;
 volatile unsigned long angle;
 volatile unsigned long curr_angle = 0;
-volatile unsigned long StepSize = 0.088;
+volatile long StepSize = 666;
 volatile int StepCounter = 0;
 volatile int MotorDelay = 2;
 volatile unsigned int MessegeType;
@@ -26,12 +26,13 @@ volatile unsigned int BufferLocation;
 volatile int ScriptNum;
 volatile int ScriptNumFlag = 1;
 volatile char WriteOnFlash[64];
-volatile int WriteOnFlash = 0;
+//volatile int WriteOnFlash = 0;
 int ScriptIndex;
 volatile char ScriptRx[10];
 int ScriptReadIndex;
 int CountScriptSize;
 int ack = 0;
+int WriteOnFlashFlag =0;
 
 Scripts scriptt = {
     1,
@@ -149,7 +150,7 @@ __interrupt void USCI0RX_ISR(void){
                 ScriptRx[ScriptIndex++] = UCA0RXBUF;
         }
         else if(WriteOnFlashFlag == 1){
-            WriteOnFlash[ScriptIndex++] = UCA0RXBUF;
+           // WriteOnFlash[ScriptIndex++] = UCA0RXBUF;
 
         }
 
@@ -313,7 +314,7 @@ void sample(void){
 
 void StepCalculation(void){
     curr_angle = 0;
-    StepSize = 360/StepCounter;
+    StepSize = 360000/StepCounter;
 }
 
 void continuous_move(void){
@@ -335,31 +336,31 @@ void continuous_move(void){
 
 void angle_increase(void){
     curr_angle += StepSize;
-    if (curr_angle > 360){
-        curr_angle = curr_angle%360;
+    if (curr_angle > 360000){
+        curr_angle = curr_angle%360000;
     }
 }
 
 void angle_decrease(void){
     curr_angle -= StepSize;
     if (curr_angle < 0){
-        curr_angle =360;
+        curr_angle =360000;
     }
-    curr_angle = curr_angle%360;
+    curr_angle = curr_angle%360000;
 }
 
-void forward(volatile long angle){
-    while(angle > 0){
+void forward(volatile long angleF){
+    while(angleF > (2*StepSize)){
         step_clockwise();
         angle_increase();
-        angle += StepSize;
+        angleF -= StepSize;
     }
 }
-void backward(volatile long angle){
-        while(angle > 0){
+void backward(volatile long angleB){
+        while(angleB > (2*StepSize)){
         step_counterclockwise();
         angle_decrease();
-        angle -= StepSize;
+        angleB -= StepSize;
     }
 }
  void step_counterclockwise(void){
@@ -408,13 +409,13 @@ void half_step_clockwise(void){
 
 void move_to_angle(unsigned long angle){
     if(curr_angle > angle){              //check which angle is bigger
-        if(curr_angle-angle < 180){   //check which direction is shortest
+        if(curr_angle-angle < 180000){   //check which direction is shortest
             backward(curr_angle-angle);
         } else{
             forward(curr_angle-angle);
         }
     }else{
-        if(angle-curr_angle > 180){  //check which direction is shortest
+        if(angle-curr_angle > 180000){  //check which direction is shortest
             backward(angle-curr_angle);
         } else{
             forward(angle-curr_angle);
@@ -428,35 +429,35 @@ void move_to_angle(unsigned long angle){
 
 //check if its working
 void MoveMotorToJoyStick(void){
-    if(Vx > 490){
+    if(Vx > 510){
         a = Vx - 465;
-    } else if(Vx < 440){
+    } else if(Vx < 460){
         a = 465 - Vx;
-    } else if((440 <= Vx) && (Vx <= 490)){
+    } else if((420 <= Vx) && (Vx <= 510)){
         a = 0;
     }
-    if(Vy > 520){
+    if(Vy > 540){
         b = Vy - 495;
-    } else if(Vy < 470){
+    } else if(Vy < 450){
         b = 495 - Vy;
-    } else if((470 <= Vy) && (Vy <= 520)){
+    } else if((450 <= Vy) && (Vy <= 540)){
         b = 0;
     }
     if(a == 0){
-        if(Vy > 520){
+        if(Vy > 540){
             alpha = 0;
         } else{
             alpha = 180;
         }
     } else if(b == 0){
-        if(Vx > 490){
+        if(Vx > 510){
             alpha = 90;
         } else{
             alpha = 270;
         }
     } else{
         c = a/b;
-        if(Vx > 490){ 
+        if(Vx > 510){
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;
         } else{
             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;
@@ -466,7 +467,7 @@ void MoveMotorToJoyStick(void){
     angle = (unsigned long)alpha;
     VxPrev = Vx;
     VyPrev = Vx;
-    move_to_angle(angle);
+    move_to_angle(angle*1000);
 }
 
 
@@ -512,23 +513,23 @@ void read_script(void){
         }
         FCTL1 = ERASE + FWKEY;
         FCTL3 = FWKEY;
-        int NumScript = stringg.num-1;
-        stringg.scripte_loc[NumScript] = 0;
+      //  int NumScript = stringg.num-1;
+ //       stringg.scripte_loc[NumScript] = 0;
         FCTL1 = WRT + FWKEY;
-        for(k=0; k<CountScriptSize; k++){
-            stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
+       // for(k=0; k<CountScriptSize; k++){
+      //      stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
         }
-        while(!((FCTL3 & BIT3) = BIT3));
+      //  while(!((FCTL3 & BIT3) = BIT3));
         FCTL1 = FWKEY;
         FCTL3 = LOCK + FWKEY;
         scriptt.Written[scriptt.num-1] = 1;
-        WriteOnFlash = 0;
+   //     WriteOnFlash = 0;
         ack = 1;
         IE2 &= ~UCA0RXIE;
         UCA0CTL1 &= ~UCSWRST;
         IE2 |= UCA0TXIE;
         Delay10Ms(10);
-   }
+  // }
 }
 
 //1
