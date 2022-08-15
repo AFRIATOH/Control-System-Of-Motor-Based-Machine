@@ -166,7 +166,7 @@ __interrupt void USCI0RX_ISR(void){
 #pragma vector=USCIAB0TX_VECTOR
 __interrupt void USCI0TX_ISR(void){
     if(InfoReq == 1){
-        UCA0TXBUF = BufferArray[TxLocation];
+        UCA0TXBUF = BufferArray[TxLocation++];
 //        BufferArray[TxLocation++] = 0;
         if(TxLocation == BufferLocation){
             BufferLocation = 0;
