@@ -102,6 +102,7 @@ void script_mode(void){
    RGB_clear;
    Leds_clear;
    read_script();
+   execute_script();
 }
 
 

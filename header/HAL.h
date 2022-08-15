@@ -38,6 +38,7 @@ extern volatile char ScriptRx[10];
 extern int ScriptReadIndex;
 extern int ack;
 extern int CountScriptSize;
+extern int CountScriptLines;
 extern volatile unsigned int DiffX;
 extern volatile unsigned int DiffY;
 extern int WriteOnFlashFlag;
@@ -74,6 +75,8 @@ extern void move_to_angle(unsigned long);
 extern void CheckDiff(void);
 
 // script funcs
+extern void read_script(void);
+extern void execute_script(void);
 extern void scan_step(unsigned long, unsigned long);
 
 //service funcs
