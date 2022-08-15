@@ -59,7 +59,7 @@ void manual_control(void){
     while(state == state1 && ArriveToZeroAngle == 1){
         sample();
         CheckDiff();
-        if ((Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470) && ((DiffX > 30) || (DiffY > 30))){
+        if ((Vx>=510 || Vx<=420 || Vy>=540 || Vy<=450) && ((DiffX > 30) || (DiffY > 30))){
             MoveMotorToJoyStick();
         }
     }
@@ -71,7 +71,16 @@ void manual_control(void){
 void PC_painter(void){
     RGB_clear;
     Leds_clear;
-    sample();
+    while(state == state2){
+        sample();
+        CheckDiff();
+        if (((DiffX > 20) || (DiffY > 20))){
+            SendInfo();
+            VxPrev = Vx;
+            VyPrev = Vy;
+            Delay10Ms(1);
+        }
+    }
 }
 
 //******************************************************************

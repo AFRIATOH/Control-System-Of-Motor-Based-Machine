@@ -103,11 +103,11 @@ __interrupt void USCI0RX_ISR(void){
         MessegeDept = 1;
         state = state0;
     }
-    else if(MessegeType == '@'){
-        InfoReq = 1;
-        SendInfo();
-        IE2 |= UCA0TXIE;
-    }
+//    else if(MessegeType == '@'){
+//        InfoReq = 1;
+//        SendInfo();
+//        IE2 |= UCA0TXIE;
+//    }
     else if(StateFlag == 1 && MessegeDept == 1){
             state = UCA0RXBUF -'0';
             PaintMode = ignore;
@@ -165,7 +165,8 @@ __interrupt void USCI0RX_ISR(void){
 __interrupt void USCI0TX_ISR(void){
     int TxLocation = 0;
     if(InfoReq == 1){
-        UCA0TXBUF = BufferArray[TxLocation++];
+        UCA0TXBUF = BufferArray[TxLocation];
+        BufferArray[TxLocation++] = 0;
         if(TxLocation == BufferLocation){
             TxLocation = 0;
             InfoReq = 0;
@@ -234,16 +235,34 @@ __interrupt void Timer_A1(void){
 //******************************************************************
 //            UART functions
 //******************************************************************
+//void SendInfo(void){
+//    BufferLocation = 0;
+//    if(state == state2){
+//        BufferArray[BufferLocation++]='!';
+//        BufferLocation += 2;
+//        AddToBuffer(Vx);
+//        AddToBuffer(Vy);
+//        int len = BufferLocation;
+//        BufferArray[2]= (len%10) + '0'; //send char of num
+//        BufferArray[1]= (len/10) + '0'; //send char of num
+//    } else if(state == state3){
+//        BufferArray[BufferLocation++]='@';
+//        BufferLocation += 2;
+//        AddToBuffer(StepCounter);
+//        AddToBuffer(StepSize);
+//        int len = BufferLocation;
+//        BufferArray[2]= (len%10) + '0'; //send char of num
+//        BufferArray[1]= (len/10) + '0'; //send char of num
+//    }
+//    InfoReq = 1;
+//    IE2 |= UCA0TXIE;
+//}
+
 void SendInfo(void){
     BufferLocation = 0;
     if(state == state2){
-        BufferArray[BufferLocation++]='!';
-        BufferLocation += 2;
-        AddToBuffer(Vx);
-        AddToBuffer(Vy);
-        int len = BufferLocation;
-        BufferArray[2]= (len%10) + '0'; //send char of num
-        BufferArray[1]= (len/10) + '0'; //send char of num
+        AddVToBuffer(Vx);
+        AddVToBuffer(Vy);
     } else if(state == state3){
         BufferArray[BufferLocation++]='@';
         BufferLocation += 2;
@@ -253,6 +272,19 @@ void SendInfo(void){
         BufferArray[2]= (len%10) + '0'; //send char of num
         BufferArray[1]= (len/10) + '0'; //send char of num
     }
+    InfoReq = 1;
+    IE2 |= UCA0TXIE;
+}
+
+void AddVToBuffer(unsigned int volt){
+    BufferArray[BufferLocation+3] = (volt%10) + '0'; //send char of num
+    volt = volt/10;
+    BufferArray[BufferLocation+2] = (volt%10) + '0'; //send char of num
+    volt = volt/10;
+    BufferArray[BufferLocation+1] = (volt%10) + '0'; //send char of num
+    volt = volt/10;
+    BufferArray[BufferLocation] = (volt%10) + '0'; //send char of num
+    BufferLocation = BufferLocation + 4;
 }
 
 void AddToBuffer(unsigned int num){
