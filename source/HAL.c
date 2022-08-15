@@ -21,7 +21,7 @@ volatile int StepCounter = 0;
 volatile int MotorDelay = 2;
 volatile unsigned int MessegeType;
 unsigned int InfoReq = 0;
-volatile char BufferArray[30];
+volatile char BufferArray[10];
 volatile unsigned int BufferLocation;
 volatile int ScriptNum;
 volatile int ScriptNumFlag = 1;
@@ -169,6 +169,7 @@ __interrupt void USCI0TX_ISR(void){
         UCA0TXBUF = BufferArray[TxLocation];
         BufferArray[TxLocation++] = 0;
         if(TxLocation == BufferLocation){
+            BufferLocation = 0;
             TxLocation = 0;
             InfoReq = 0;
             IE2 &= ~UCA0TXIE;
@@ -262,19 +263,30 @@ __interrupt void Timer_A1(void){
 void SendInfo(void){
     BufferLocation = 0;
     if(state == state2){
+        BufferArray[BufferLocation++] = PaintMode + '0'; //send char of num
         AddVToBuffer(Vx);
         AddVToBuffer(Vy);
     } else if(state == state3){
-        BufferArray[BufferLocation++]='@';
-        BufferLocation += 2;
-        AddToBuffer(StepCounter);
-        AddToBuffer(StepSize);
-        int len = BufferLocation;
-        BufferArray[2]= (len%10) + '0'; //send char of num
-        BufferArray[1]= (len/10) + '0'; //send char of num
+        AddStepToBuffer(StepCounter);
     }
     InfoReq = 1;
     IE2 |= UCA0TXIE;
+}
+
+void AddStepToBuffer(int steps){
+    if(steps < 0){ //abs of step number
+        steps = 0 - steps;
+    }
+    BufferArray[BufferLocation+4] = (steps%10) + '0'; //send char of num
+    steps = steps/10;
+    BufferArray[BufferLocation+3] = (steps%10) + '0'; //send char of num
+    steps = steps/10;
+    BufferArray[BufferLocation+2] = (steps%10) + '0'; //send char of num
+    steps = steps/10;
+    BufferArray[BufferLocation+1] = (steps%10) + '0'; //send char of num
+    steps = steps/10;
+    BufferArray[BufferLocation] = (steps%10) + '0'; //send char of num
+    BufferLocation = BufferLocation + 5;
 }
 
 void AddVToBuffer(unsigned int volt){
@@ -345,6 +357,9 @@ void sample(void){
 //******************************************************************
 
 void StepCalculation(void){
+    if(StepCounter < 0){  //abs of step number
+        StepCounter = 0 - StepCounter;
+    }
     curr_angle = 0;
     StepSize = 360000/StepCounter;
 }

@@ -92,6 +92,7 @@ void calibration(void){
     StepCounter = 0;
     continuous_move();
     StepCalculation();
+    SendInfo();
     state = state0;
 }
 
