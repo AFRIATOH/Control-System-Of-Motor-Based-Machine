@@ -40,9 +40,9 @@ Scripts scriptt = {
     {(char*)0xF800, (char*)0xFA00, (char*)0xFC00}
 };
 
-unsigned int StateFlag = 0;
+unsigned int StateFlag = 1;
 unsigned int ArriveToZeroAngle = 0;
-unsigned int MessegeDept = 0;
+unsigned int MessegeDept = 1;
 
 //******************************************************************
 //          System Configuration 
