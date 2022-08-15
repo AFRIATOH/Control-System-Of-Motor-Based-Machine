@@ -78,7 +78,7 @@ void PC_painter(void){
             SendInfo();
             VxPrev = Vx;
             VyPrev = Vy;
-            Delay10Ms(1);
+            Delay10Ms(3);
         }
     }
 }
