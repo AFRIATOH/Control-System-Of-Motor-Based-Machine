@@ -13,16 +13,19 @@ from PyQt5.QtCore import *
 state = '0'
 enableTX = True
 delay=0.30
+scom = 'NADA'
 #
 
 
 ### Class
 class Window(QMainWindow):
+
     def __init__(self):
         super().__init__()
 
         # setting title
         self.setWindowTitle("Paint with PyQt5")
+
 
         # setting geometry to main window
         self.setGeometry(100, 100, 800, 600)
@@ -134,16 +137,8 @@ class Window(QMainWindow):
 
 
     def mousePressEvent(self, event):
+        print(hi)
 
-        # if left mouse button is pressed
-            # make drawing flag true
-        print("hi")
-        self.init_uart()
-        while QtSerialPort.in_waiting:
-            pot = QtSerialPort.read(size=5).decode("ascii")  # read 3 byte from the input buffer
-            pot = pot.replace('\0', '')
-            volt = (str(3.3 * int(pot) / 1024))
-        print(" Potentiometer value: " + volt[:5] + " [Volt]")
 
     # method for tracking mouse activity
     def JoystickMoveEvent(self, x,y):
@@ -225,7 +220,6 @@ def state1(scom , enableTX , delay=0.30):
                 [sg.Button('Finish')],
                 [sg.Button('Back')]]
     window = sg.Window('Manual control of motor based machine', layout_1)
-    #while scom.out_waiting or enableTX:
     while True:
         event, values = window.read()
         if event == 'Back' or event == sg.WIN_CLOSED:
@@ -258,6 +252,7 @@ def state1(scom , enableTX , delay=0.30):
 
 
 def state2(scom , enableTX , delay=0.30):
+
     # create pyqt5 app
     App = QApplication(sys.argv)
 
@@ -267,8 +262,11 @@ def state2(scom , enableTX , delay=0.30):
     # showing the window
     window.show()
 
-    # start the app
     App.exec()
+    # start the app
+
+
+
 
 def state3(scom , enableTX , delay=0.30):
 
@@ -296,6 +294,7 @@ def main():
     global enableTX
     global state
     global delay
+    global scom
     sg.theme('DarkAmber')
     #sg.theme('Dark Grey 13')
     scom = reset_com()   #reset the buffers
@@ -333,16 +332,14 @@ def main():
                 time.sleep(delay)
                 if (scom.out_waiting == 0):
                     break
-            #state2(scom, enableTX)
             enableTX = False
-            while scom.in_waiting: #or not(enableTX):
-                pot = scom.read(size=6).decode("ascii")
-                print(pot)
-           # while scom.out_waiting or enableTX:
-               # scom.write(bytes('!', 'ascii'))
-                #time.sleep(delay)
-                #if (scom.out_waiting == 0):
-                    #break
+            state2(scom, enableTX)
+            enableTX = True
+            while scom.out_waiting or enableTX:
+                scom.write(bytes('!', 'ascii'))
+                time.sleep(delay)
+                if (scom.out_waiting == 0):
+                    break
         if event == 'Stepper Motor Calibration':
             state = '3'
             scom.write(bytes(state, 'ascii'))
