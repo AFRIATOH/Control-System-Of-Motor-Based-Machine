@@ -31,16 +31,15 @@ extern volatile unsigned int VyPrev;
 extern unsigned int ArriveToZeroAngle;
 extern volatile int ScriptNum;
 extern volatile int ScriptNumFlag;
-extern volatile int WriteOnFlash;
+extern volatile int ScriptNumFlag;
+extern volatile char WriteOnFlash[64];
 extern int ScriptIndex;
 extern volatile char ScriptRx[10];
 extern int ScriptReadIndex;
 extern int ack;
-extern int WriteOnFlashFlag;
 extern int CountScriptSize;
 extern volatile unsigned int DiffX;
 extern volatile unsigned int DiffY;
-
 // System
 extern void sysConfig(void);
 extern void enterLPM(unsigned char);

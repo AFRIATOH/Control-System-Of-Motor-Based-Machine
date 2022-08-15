@@ -25,11 +25,11 @@ volatile char BufferArray[30];
 volatile unsigned int BufferLocation;
 volatile int ScriptNum;
 volatile int ScriptNumFlag = 1;
+volatile char WriteOnFlash[64];
 volatile int WriteOnFlash = 0;
 int ScriptIndex;
 volatile char ScriptRx[10];
 int ScriptReadIndex;
-int WriteOnFlashFlag;
 int CountScriptSize;
 int ack = 0;
 
@@ -342,7 +342,7 @@ void angle_increase(void){
 void angle_decrease(void){
     curr_angle -= StepSize;
     if (curr_angle < 0){
-        curr_angle =300;
+        curr_angle =360;
     }
     curr_angle = curr_angle%360;
 }
@@ -351,7 +351,7 @@ void forward(volatile long angle){
     while(angle > 0){
         step_clockwise();
         angle_increase();
-        angle -= StepSize;
+        angle += StepSize;
     }
 }
 void backward(volatile long angle){
@@ -509,13 +509,17 @@ void read_script(void){
         for(k=0; k<CountScriptSize; k++){
             __bis_SR_register(LPM0_bits + GIE);
         }
-        // FCTL1 = ERASE + FWKEY;
-        // FCTL3 = FWKEY;
-        // stringg.scripte_loc[stringg.num-1] = 0;
-        // FCTL1 = WRT + FWKEY;
-        // for(k=0; k<CountScriptSize; k++){
-        //
-        // }
+        FCTL1 = ERASE + FWKEY;
+        FCTL3 = FWKEY;
+        int NumScript = stringg.num-1;
+        stringg.scripte_loc[NumScript] = 0;
+        FCTL1 = WRT + FWKEY;
+        for(k=0; k<CountScriptSize; k++){
+            stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
+        }
+        while(!((FCTL3 & BIT3) = BIT3));
+        FCTL1 = FWKEY;
+        FCTL3 = LOCK + FWKEY;
         scriptt.Written[scriptt.num-1] = 1;
         WriteOnFlash = 0;
         ack = 1;
@@ -524,7 +528,6 @@ void read_script(void){
         IE2 |= UCA0TXIE;
         Delay10Ms(10);
    }
-
 }
 
 //1
