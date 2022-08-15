@@ -30,6 +30,7 @@ int ScriptIndex;
 volatile char ScriptRx[10];
 int ScriptReadIndex;
 int CountScriptSize;
+int CountScriptLines;
 int ack = 0;
 int WriteOnFlashFlag =0;
 
@@ -342,7 +343,7 @@ void angle_increase(void){
 
 void angle_decrease(void){
     curr_angle -= StepSize;
-    if (curr_angle < 0){
+    if (curr_angle < (2*StepSize)){
         curr_angle =360000;
     }
     curr_angle = curr_angle%360000;
@@ -490,6 +491,7 @@ void CheckDiff(void){
 void read_script(void){
    __bis_SR_register(LPM0_bits + GIE);               // LPM0
    scriptt.num = ScriptNum;
+   int NumScriptR = scriptt.num-1;
    ScriptIndex = 0;
    int k = 0;
    while(k<2){
@@ -500,11 +502,11 @@ void read_script(void){
    }
    ScriptNumFlag = 1;
    ScriptIndex = 0;
-   if(scriptt.Written[scriptt.num-1] == 0){
-        scriptt.size[scriptt.num-1] = str_to_int_ScriptRx(ScriptRx);
+   if(scriptt.Written[NumScriptR] == 0){
+        scriptt.size[NumScriptR] = str_to_int_ScriptRx(ScriptRx);
         ScriptIndex++;
-        scriptt.line[scriptt.num-1] = str_to_int_ScriptRx(ScriptRx);
-        CountScriptSize = scriptt.size[scriptt.num-1];
+        scriptt.line[NumScriptR] = str_to_int_ScriptRx(ScriptRx);
+        CountScriptSize = scriptt.size[NumScriptR];
         ScriptReadIndex = 0;
         WriteOnFlashFlag = 1;
         for(k=0; k<CountScriptSize; k++){
@@ -512,11 +514,10 @@ void read_script(void){
         }
         FCTL1 = ERASE + FWKEY;
         FCTL3 = FWKEY;
-        int NumScript = scriptt.num-1;
-        scriptt.scripte_loc[NumScript] = 0;
+        scriptt.scripte_loc[NumScriptR] = 0;
         FCTL1 = WRT + FWKEY;
         for(k=0; k<CountScriptSize; k++){
-            scriptt.scripte_loc[NumScript++] = WriteOnFlash[k];
+            scriptt.scripte_loc[NumScriptR++] = WriteOnFlash[k];
         }
         while(!((FCTL3 & 0x03) == 0x03));
         FCTL1 = FWKEY;
@@ -531,6 +532,33 @@ void read_script(void){
    }
 }
 
+// void execute_script(void){
+//     ack = 0;
+//     int opcode = 0;
+//     int NumScriptE = scriptt.num-1;
+//     if (!scriptt.first_Written[NumScriptE]){
+//         scriptt.first_Written[NumScriptE] = 1;
+//     }else if(scriptt.first_Written[NumScriptE]){
+//         CountScriptLines = scriptt.line[NumScriptE];
+//     int l = 0;
+//     for(l=0;l<CountScriptLines;l++){
+//         opcode = read_opcode();
+//     }
+
+// }
+
+// void read_opcode(void){
+//     int i;
+//     char m;
+//     for(i=0;i<2;i++){
+//         m = read(i);
+//         if(m==0){
+//             return 0;
+//         } else if(m > (9 + '0')){
+
+//         }
+//     }
+// }
 //1
 void bling_RGB(int X){
     for(i = 0 ; i < X ; i++){
@@ -573,7 +601,7 @@ void rrc_LED(int X){
 
 //4
 void set_delay(int X){
-    //×ª×œ×•×™ ×‘×�×™×š ×©× ×©×œ×— ×�×•×ª×•
+
 }
 
 //5
