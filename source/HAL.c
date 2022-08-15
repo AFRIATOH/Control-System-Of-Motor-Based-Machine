@@ -149,6 +149,7 @@ __interrupt void USCI0RX_ISR(void){
                 ScriptRx[ScriptIndex++] = UCA0RXBUF;
         }
         else if(WriteOnFlashFlag == 1){
+            WriteOnFlash[ScriptIndex++] = UCA0RXBUF;
 
         }
 
@@ -311,7 +312,7 @@ void sample(void){
 //******************************************************************
 
 void StepCalculation(void){
-    curr_angle =0;
+    curr_angle = 0;
     StepSize = 360/StepCounter;
 }
 
