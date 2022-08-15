@@ -417,56 +417,8 @@ void move_to_angle(unsigned long angle){
 }
 
 //****************************************************************** 
-//            move according to joystick
+//           joystick Tracker
 //******************************************************************
-// void MoveMotorToJoyStick(void){
-//     if (Vx > 490){                                                     // Vx dir is right
-//         if(Vy > 520){                                                 // Vy dir is up
-//             a = Vx - 465;
-//             b = Vy - 495;
-//             c = a/b;                                                // Assign the value we will find the atan of
-//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-//         } else if (Vy < 470){                                    // Vy dir is down
-//             a = Vx - 465;
-//             b = 495 - Vy;
-//             c = a/b;                                            // Assign the value we will find the atan of
-//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;   // taylor series of arctan
-//             alpha = 180 - alpha;
-//         }
-//         else{                                                // Vy is in the middle -> angle is 90
-//             alpha = 90;
-//         }
-
-//     } else if (Vx < 440){                                              // Vx dir is left
-//         if(Vy > 520){                                                 // Vy dir is up
-//             a = 465 - Vx;
-//             b = Vy - 495;
-//             c = a/b;                                                // Assign the value we will find the atan of
-//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;       // taylor series of arctan
-//             alpha = 360 - alpha;
-//         } else if (Vy < 470){                                    // Vy dir is down
-//             a = 465 - Vx;
-//             b = 495 - Vy;
-//             c = a/b;                                           // Assign the value we will find the atan of
-//             alpha = (c - (c*c*c)/3 + (c*c*c*c*c)/5) * 180 / Phi;  // taylor series of arctan
-//             alpha = 180 + alpha;
-//         } else {                                             // Vy is in the middle -> angle is 270
-//             alpha = 270;
-//         }
-//     }
-//     else{                                                 // Vx is in the middle
-//         if(Vy > 520){                                   // Vy dir is up -> angle is 0
-//             alpha = 0;
-//         } else if (Vy < 470){                          // Vy dir is down -> angle is 180
-//             alpha = 180;
-//         }
-//     }
-//     angle = (unsigned long)alpha;
-//     //angle = alpha;
-//     move_to_angle(angle*1000);
-//     VxPrev = Vx;
-//     VyPrev = Vx;
-// }
 
 //check if its working
 void MoveMotorToJoyStick(void){
