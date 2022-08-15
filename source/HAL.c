@@ -32,7 +32,8 @@ int ScriptReadIndex;
 int CountScriptSize;
 int CountScriptLines;
 int ack = 0;
-int WriteOnFlashFlag =0;
+int WriteOnFlashFlag = 0;
+int TxLocation = 0;
 
 Scripts scriptt = {
     1,
@@ -164,10 +165,9 @@ __interrupt void USCI0RX_ISR(void){
 
 #pragma vector=USCIAB0TX_VECTOR
 __interrupt void USCI0TX_ISR(void){
-    int TxLocation = 0;
     if(InfoReq == 1){
         UCA0TXBUF = BufferArray[TxLocation];
-        BufferArray[TxLocation++] = 0;
+//        BufferArray[TxLocation++] = 0;
         if(TxLocation == BufferLocation){
             BufferLocation = 0;
             TxLocation = 0;
