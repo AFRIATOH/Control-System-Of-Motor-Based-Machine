@@ -26,7 +26,6 @@ volatile unsigned int BufferLocation;
 volatile int ScriptNum;
 volatile int ScriptNumFlag = 1;
 volatile char WriteOnFlash[64];
-//volatile int WriteOnFlash = 0;
 int ScriptIndex;
 volatile char ScriptRx[10];
 int ScriptReadIndex;
@@ -141,7 +140,7 @@ __interrupt void USCI0RX_ISR(void){
     }
     else if((MessegeDept == 2) && (state == state4)){
         MessegeDept = 0;
-        if(WriteOnFlash == 0){
+        if(WriteOnFlashFlag == 0){
             if(ScriptNumFlag == 1){
                 ScriptNumFlag = 0;
                 ScriptNum = UCA0RXBUF - '0';
@@ -150,7 +149,7 @@ __interrupt void USCI0RX_ISR(void){
                 ScriptRx[ScriptIndex++] = UCA0RXBUF;
         }
         else if(WriteOnFlashFlag == 1){
-           // WriteOnFlash[ScriptIndex++] = UCA0RXBUF;
+           WriteOnFlash[ScriptIndex++] = UCA0RXBUF;
 
         }
 
@@ -513,23 +512,23 @@ void read_script(void){
         }
         FCTL1 = ERASE + FWKEY;
         FCTL3 = FWKEY;
-      //  int NumScript = stringg.num-1;
- //       stringg.scripte_loc[NumScript] = 0;
+        int NumScript = stringg.num-1;
+        stringg.scripte_loc[NumScript] = 0;
         FCTL1 = WRT + FWKEY;
-       // for(k=0; k<CountScriptSize; k++){
-      //      stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
+        for(k=0; k<CountScriptSize; k++){
+            stringg.scripte_loc[NumScript++] = volatile char WriteOnFlash[k];
         }
-      //  while(!((FCTL3 & BIT3) = BIT3));
+        while(!((FCTL3 & 0x03) = 0x03));
         FCTL1 = FWKEY;
         FCTL3 = LOCK + FWKEY;
         scriptt.Written[scriptt.num-1] = 1;
-   //     WriteOnFlash = 0;
+        WriteOnFlashFlag = 0;
         ack = 1;
         IE2 &= ~UCA0RXIE;
         UCA0CTL1 &= ~UCSWRST;
         IE2 |= UCA0TXIE;
         Delay10Ms(10);
-  // }
+   }
 }
 
 //1
