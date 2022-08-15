@@ -58,8 +58,9 @@ void manual_control(void){
     }
     while(state == state1 && ArriveToZeroAngle == 1){
         sample();
-        if ((Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470) && ((Vx-VxPrev > 30) || (Vy-VyPrev > 30) || (VxPrev-Vx > 30) || (VyPrev-Vy > 30))){
-        MoveMotorToJoyStick();
+        CheckDiff();
+        if ((Vx>=490 || Vx<=440 || Vy>=520 || Vy<=470) && ((DiffX > 30) || (DiffY > 30))){
+            MoveMotorToJoyStick();
         }
     }
 }

@@ -38,6 +38,8 @@ extern int ScriptReadIndex;
 extern int ack;
 extern int WriteOnFlashFlag;
 extern int CountScriptSize;
+extern volatile unsigned int DiffX;
+extern volatile unsigned int DiffY;
 
 // System
 extern void sysConfig(void);
@@ -67,6 +69,7 @@ extern void step_clockwise(void);
 extern void step_counterclockwise(void);
 extern void half_step_clockwise(void);
 extern void move_to_angle(unsigned long);
+extern void CheckDiff(void);
 
 // script funcs
 extern void scan_step(unsigned long, unsigned long);

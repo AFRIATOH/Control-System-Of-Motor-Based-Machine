@@ -8,13 +8,15 @@ volatile unsigned int Vx=465;
 volatile unsigned int Vy=495;
 volatile unsigned int VxPrev=465;
 volatile unsigned int VyPrev=495;
+volatile unsigned int DiffX = 0;
+volatile unsigned int DiffY = 0;
 unsigned int Vin[2] = {465, 495};
 unsigned int a, b;
 double c;
 double alpha;
 volatile unsigned long angle;
 volatile unsigned long curr_angle = 0;
-volatile unsigned long StepSize = 700;
+volatile unsigned long StepSize = 0.088;
 volatile int StepCounter = 0;
 volatile int MotorDelay = 2;
 volatile unsigned int MessegeType;
@@ -99,6 +101,7 @@ __interrupt void USCI0RX_ISR(void){
     if(MessegeType == '!'){
         StateFlag = 1;
         MessegeDept = 1;
+        state = state0;
     }
     else if(MessegeType == '@'){
         InfoReq = 1;
@@ -123,6 +126,7 @@ __interrupt void USCI0RX_ISR(void){
         MoveDiraction = UCA0RXBUF -'0';
         if(MoveDiraction == stop){
             ArriveToZeroAngle = 1;
+            curr_angle = 0;
             StateFlag = 0;
             MessegeDept = 1;
         }
@@ -308,7 +312,7 @@ void sample(void){
 
 void StepCalculation(void){
     curr_angle =0;
-    StepSize = 360000/StepCounter;
+    StepSize = 360/StepCounter;
 }
 
 void continuous_move(void){
@@ -329,17 +333,17 @@ void continuous_move(void){
 
 void angle_increase(void){
     curr_angle += StepSize;
-    if (curr_angle > 360000){
-        curr_angle = curr_angle%360000;
+    if (curr_angle > 360){
+        curr_angle = curr_angle%360;
     }
 }
 
 void angle_decrease(void){
     curr_angle -= StepSize;
     if (curr_angle < 0){
-        curr_angle =360000;
+        curr_angle =300;
     }
-    curr_angle = curr_angle%360000;
+    curr_angle = curr_angle%360;
 }
 
 void forward(volatile long angle){
@@ -402,13 +406,13 @@ void half_step_clockwise(void){
 
 void move_to_angle(unsigned long angle){
     if(curr_angle > angle){              //check which angle is bigger
-        if(curr_angle-angle < 180000){   //check which direction is shortest
+        if(curr_angle-angle < 180){   //check which direction is shortest
             backward(curr_angle-angle);
         } else{
             forward(curr_angle-angle);
         }
     }else{
-        if(angle-curr_angle > 180000){  //check which direction is shortest
+        if(angle-curr_angle > 180){  //check which direction is shortest
             backward(angle-curr_angle);
         } else{
             forward(angle-curr_angle);
@@ -460,8 +464,23 @@ void MoveMotorToJoyStick(void){
     angle = (unsigned long)alpha;
     VxPrev = Vx;
     VyPrev = Vx;
-    move_to_angle(angle*1000);
+    move_to_angle(angle);
 }
+
+
+void CheckDiff(void){
+    if(Vx > VxPrev){
+        DiffX = Vx - VxPrev;
+    } else{
+        DiffX = VxPrev - Vx;
+    }
+    if(Vy > VyPrev){
+        DiffY = Vy - VyPrev;
+    } else{
+        DiffY = VyPrev - Vy;
+    }
+}
+
 //******************************************************************
 //            script funcs
 //******************************************************************
@@ -583,7 +602,5 @@ void stepper_scan(unsigned long l, unsigned long r){
     // Tell PC that motor arrived to Left angle
 
 }
-
-
 
 
