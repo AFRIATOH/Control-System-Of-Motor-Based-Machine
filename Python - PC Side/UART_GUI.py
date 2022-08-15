@@ -252,7 +252,6 @@ def state1(scom , enableTX , delay=0.30):
 
 
 def state2(scom , enableTX , delay=0.30):
-
     # create pyqt5 app
     App = QApplication(sys.argv)
 
@@ -261,10 +260,15 @@ def state2(scom , enableTX , delay=0.30):
 
     # showing the window
     window.show()
+    
+    while not (enableTX):
+        while scom.in_waiting:  # or not(enableTX):
+            PaintState = scom.read(size=1).decode("ascii")
+            Vx = scom.read(size=4).decode("ascii")
+            Vy = scom.read(size=4).decode("ascii")
 
-    App.exec()
     # start the app
-
+    App.exec()
 
 
 
